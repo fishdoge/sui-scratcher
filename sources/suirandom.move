@@ -36,6 +36,16 @@ fun init(ctx: &mut TxContext) {
     );
 }
 
+public fun mint(_cap: &MintingCapability, n: u16, ctx: &mut TxContext): vector<AirDropNFT> {
+    let mut result = vector[];
+    let mut i = 0;
+    while (i < n) {
+        result.push_back(AirDropNFT { id: object::new(ctx) });
+        i = i + 1;
+    };
+    result
+}
+
 public fun mint_sender(cap: &MintingCapability, n: u16, ctx: &mut TxContext) {
     let mut i = 0;
     let mut tempNFT = mint(cap, n, ctx);

@@ -6,8 +6,8 @@
 /// The probability of getting a gold, silver, or bronze NFT is 10%, 30%, and 60% respectively.
 module suirandom::suirandom;
 
-use std::string;
-use sui::{object::delete, random::{Random, new_generator}};
+use std::{string, string::utf8};
+use sui::{object::delete, random::{Random, new_generator}, display, package, url::Url};
 
 const EInvalidParams: u64 = 0;
 
@@ -28,12 +28,58 @@ public struct MintingCapability has key {
     id: UID,
 }
 
+public struct InstaNFT has key, store {
+    id: UID,
+    /// Name for the token
+    name: string::String,
+    /// Description of the token
+    description: string::String,
+    /// URL for the token
+    img_url: Url,
+    creator: address,
+}
+
+public struct SUIRANDOM has drop {}
+
+const NAME: vector<u8> = b"Pacbit Egg";
+const VERSION: vector<u8> = b"Beta";
+const IMAGE_URL: vector<u8> = b"https://images.unsplash.com/photo-1589656966895-2f33e7653819?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cG9sYXIlMjBiZWFyfGVufDB8fDB8fHww";
+const DESCRIPTION: vector<u8> = b"Pacbit Egg";
+const OFFICIAL_URL: vector<u8> = b"";
+const CREATOR: vector<u8> = b"";
+
 #[allow(unused_function)]
-fun init(ctx: &mut TxContext) {
+fun init(otw: SUIRANDOM, ctx: &mut TxContext) {
+    let publisher = package::claim(otw, ctx);
+
+    let keys = vector[
+        utf8(b"name"),
+        utf8(b"image_url"),
+        utf8(b"description"),
+        utf8(b"project_url"),
+        utf8(b"creator"),
+        utf8(b"version"),
+    ];
+    let values = vector[
+        utf8(NAME),
+        utf8(IMAGE_URL),
+        utf8(DESCRIPTION),
+        utf8(OFFICIAL_URL),
+        utf8(CREATOR),
+        utf8(VERSION),
+    ];
+
+    let mut display = display::new_with_fields<InstaNFT>(
+        &publisher, keys, values, ctx
+    );
+    display::update_version(&mut display);
+
+    sui::transfer::public_transfer(display, ctx.sender());
+    sui::transfer::public_transfer(publisher, ctx.sender());
     transfer::transfer(
         MintingCapability { id: object::new(ctx) },
         ctx.sender(),
-    );
+    )
 }
 
 public fun mint(_cap: &MintingCapability, n: u16, ctx: &mut TxContext): vector<AirDropNFT> {
@@ -46,6 +92,7 @@ public fun mint(_cap: &MintingCapability, n: u16, ctx: &mut TxContext): vector<A
     result
 }
 
+#[allow(lint(self_transfer))]
 public fun mint_sender(cap: &MintingCapability, n: u16, ctx: &mut TxContext) {
     let mut i = 0;
     let mut tempNFT = mint(cap, n, ctx);
@@ -169,8 +216,9 @@ public fun destroy_cap(cap: MintingCapability) {
 }
 
 #[test_only]
+public struct CAPY has drop {}
+
+#[test_only]
 public fun test_init(ctx: &mut TxContext) {
-    init(ctx)
+    init(SUIRANDOM {}, ctx)
 }
-
-

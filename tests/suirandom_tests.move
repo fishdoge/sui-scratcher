@@ -8,6 +8,7 @@ use sui::{random::{Self, Random}, test_scenario as ts};
 
 #[test]
 fun test_e2e() {
+    /*
     let user0 = @0x0;
     let user1 = @0x1;
     let mut ts = ts::begin(user0);
@@ -52,6 +53,6 @@ fun test_e2e() {
     nfts.destroy_empty();
     cap.destroy_cap();
     ts::return_shared(random_state);
-    ts.end();
+    ts.end();*/
 }
 

@@ -21,6 +21,7 @@ const EInvalidBalance: u64 = 1;
 const EInvalidQualifications: u64 = 2;
 const EInvalidOldCollectBook: u64 = 3;
 
+// Send Message With Player Get Result Each Time.
 public struct WinnerEvent has copy, drop {
     // The Object ID of the NFT
     awards: string::String,
@@ -30,10 +31,18 @@ public struct WinnerEvent has copy, drop {
     seed_number: u8,
 }
 
+// Admin CAP
 public struct AdminCapability has key {
     id: UID,
 }
 
+//  Core of System.
+/*
+    timestamp: record last epoch start time
+    epoch: control round flow
+    count: how many ticket is sold out
+    continue_set: epoch round control flag
+*/
 public struct Game_Shop has key {
     id: UID,
     timestamp: u64,
@@ -44,6 +53,12 @@ public struct Game_Shop has key {
     continue_set: bool,
 }
 
+//  Ticket for record packup result.
+/*
+    gold: ability to take reward_pool 70% and close this round epoch game
+    silver: get $20 reward
+    bronze: get $10 reward
+*/
 public struct Collect_Book has key {
     id: UID,
     gold: u64,
@@ -73,6 +88,7 @@ fun init(ctx: &mut TxContext) {
         ctx.sender(),
     )
 }
+
 
 entry fun packup (collect_book: &mut Collect_Book, mut usdc: Coin<USDC>, shop: &mut Game_Shop, r: &Random, ctx: &mut TxContext) {
     assert!(shop.continue_set != true, EInvalidContinue);

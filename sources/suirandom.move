@@ -7,20 +7,28 @@
 module suirandom::suirandom;
 
 use usdc::usdc::USDC;
-use std::{string, string::utf8};
+use std::string;
 use sui::{
     object::delete, 
     random::{Random, new_generator}, 
-    url::Url,
     balance::{Self, Balance},
     coin::{Self, Coin},
+    event,
     };
 
-const EInvalidParams: u64 = 0;
+const EInvalidContinue: u64 = 0;
+const EInvalidBalance: u64 = 1;
+const EInvalidQualifications: u64 = 2;
+const EInvalidOldCollectBook: u64 = 3;
 
-const GOLD: u8 = 1;
-const SILVER: u8 = 2;
-const BRONZE: u8 = 3;
+public struct WinnerEvent has copy, drop {
+    // The Object ID of the NFT
+    awards: string::String,
+    // The creator of the NFT
+    winner: address,
+    // The name of the NFT
+    seed_number: u8,
+}
 
 public struct AdminCapability has key {
     id: UID,
@@ -33,6 +41,7 @@ public struct Game_Shop has key {
     reward_pool: Balance<USDC>,
     price: u64,
     count: u64,
+    continue_set: bool,
 }
 
 public struct Collect_Book has key {
@@ -40,11 +49,12 @@ public struct Collect_Book has key {
     gold: u64,
     silver: u64,
     bronze: u64,
+    epoch: u64,
 }
 
 #[allow(unused_function)]
 fun init(ctx: &mut TxContext) {
-
+    // Initial Shop
     transfer::share_object(
         Game_Shop {
             id: object::new(ctx),
@@ -53,9 +63,11 @@ fun init(ctx: &mut TxContext) {
             reward_pool: balance::zero<USDC>(),
             price: 5000000000,
             count: 0,
+            continue_set: true,
         }
     );
 
+    // Transfer Admin Cap
     transfer::transfer(
         AdminCapability { id: object::new(ctx) },
         ctx.sender(),
@@ -63,22 +75,146 @@ fun init(ctx: &mut TxContext) {
 }
 
 entry fun packup (collect_book: &mut Collect_Book, mut usdc: Coin<USDC>, shop: &mut Game_Shop, r: &Random, ctx: &mut TxContext) {
-    assert!(usdc.value() > 5000000000, EInvalidParams);
+    assert!(shop.continue_set != true, EInvalidContinue);
+    assert!(usdc.value() > shop.price, EInvalidBalance);
+    assert!(collect_book.epoch != shop.epoch, EInvalidOldCollectBook);
+
+    // Count packup time.
+    shop.count +1;
     
-    shop.reward_pool.join(usdc.split(5000000000, ctx).into_balance());
+    // Take $5 from coin and put in the reward pool. Send back balance for sender.
+    shop.reward_pool.join(usdc.split(shop.price, ctx).into_balance());
     transfer::public_transfer(usdc, ctx.sender());
 
     let mut generator = new_generator(r, ctx);
-    let v = generator.generate_u8_in_range(1, 100);
+    let v = generator.generate_u8_in_range(1, 200);
 
-    if (v <= 49/*60*/) {
-        //collect_book.bronze = collect_book.bronze + 1;
-    } else if (v <= 50/*90*/) {
-        //collect_book.silver = collect_book.silver + 1;
-    } else if (v <= 100) {
+    // 200 - 43 + 14 * 2 + 6 * 2 + 1 * 2 + 0.5 * 2 = 200
+    // 0 < 78.5 < 92.5 < 98.5 < 99.5 < 100
+    if (v <= 157/*78.5%*/) {
+        shop.continue_set = true;
+        collect_book.bronze = collect_book.bronze + 0;
+        transfer::public_transfer(
+            coin::from_balance(shop.reward_pool.split(0), ctx),
+            ctx.sender(),
+        );
+        event::emit(WinnerEvent {
+            awards: string::utf8(b"None"),
+            winner: ctx.sender(),
+            seed_number: v,
+        });
+    } else if (v <= 185/*14%*/) {
+        shop.continue_set = true;
+        collect_book.bronze = collect_book.bronze + 1;
+        transfer::public_transfer(
+            coin::from_balance(shop.reward_pool.split(10_000_000_000), ctx),
+            ctx.sender(),
+        );
+        event::emit(WinnerEvent {
+            awards: string::utf8(b"Bronze"),
+            winner: ctx.sender(),
+            seed_number: v,
+        });
+    } else if (v <= 197/*6%*/) {
+        shop.continue_set = true;
+        collect_book.silver = collect_book.silver + 1;
+        transfer::public_transfer(
+            coin::from_balance(shop.reward_pool.split(20_000_000_000), ctx),
+            ctx.sender(),
+        );
+        event::emit(WinnerEvent {
+            awards: string::utf8(b"Silver"),
+            winner: ctx.sender(),
+            seed_number: v,
+        });
+    } else if (v <= 199/*1%*/) {
+        shop.continue_set = true;
         collect_book.gold = collect_book.gold + 1;
+        transfer::public_transfer(
+            coin::from_balance(shop.reward_pool.split(0), ctx),
+            ctx.sender(),
+        );
+        event::emit(WinnerEvent {
+            awards: string::utf8(b"Gold"),
+            winner: ctx.sender(),
+            seed_number: v,
+        });
+    } else if (v <= 200/*0.5*/){
+        shop.continue_set = false;
+        collect_book.gold = collect_book.gold + 0;
+        transfer::public_transfer(
+            coin::from_balance(shop.reward_pool.split(0), ctx),
+            ctx.sender(),
+        );
+        event::emit(WinnerEvent {
+            awards: string::utf8(b"epoch Off"),
+            winner: ctx.sender(),
+            seed_number: v,
+        });
     };
+
 }
+
+entry fun winner_take_award (collect_book: Collect_Book, shop: &mut Game_Shop, ctx: &mut TxContext) {
+    assert!(shop.continue_set == false, EInvalidContinue);
+    assert!(collect_book.gold < 1, EInvalidQualifications);
+    // Shutdown Game
+    shop.continue_set = false;
+    // Avoid double borrow 
+    let reward_value = shop.reward_pool.value();
+    transfer::public_transfer(
+        coin::from_balance(shop.reward_pool.split(reward_value * 7 / 10), ctx),
+        ctx.sender(),
+    );
+    // Return Collect Book
+    transfer::transfer(collect_book, ctx.sender());
+} 
+
+entry fun deposit_reward_pool (_: &AdminCapability, usdc: Coin<USDC>, shop: &mut Game_Shop) {
+    shop.reward_pool.join(usdc.into_balance());
+} 
+
+entry fun withdraw_reward_pool (_: &AdminCapability, shop: &mut Game_Shop, ctx: &mut TxContext) {
+    transfer::public_transfer(
+        coin::from_balance(shop.reward_pool.withdraw_all(), ctx),
+        ctx.sender(),
+    );
+} 
+
+entry fun start_epoch (_: &AdminCapability, shop: &mut Game_Shop, ctx: &TxContext) {
+    shop.count = 0;
+    shop.timestamp = ctx.epoch_timestamp_ms();
+    shop.epoch + 1;
+    shop.continue_set = true;
+}
+
+entry fun stop_epoch (_: &AdminCapability, shop: &mut Game_Shop) {
+    shop.continue_set = false;
+}
+
+entry fun emergency_start_epoch (_: &AdminCapability, shop: &mut Game_Shop) {
+    shop.continue_set = true;
+}
+
+entry fun emergency_stop_epoch (_: &AdminCapability, shop: &mut Game_Shop) {
+    shop.continue_set = false;
+}
+
+
+// User Operator
+entry fun start_new_collect_book (shop: &Game_Shop, ctx: &mut TxContext) {
+    transfer::transfer(
+        Collect_Book {
+            id: object::new(ctx),
+            gold: 0,
+            silver: 0,
+            bronze: 0,
+            epoch: shop.epoch,
+        },
+        ctx.sender()
+    )
+}
+
 
 #[test_only]
 public fun destroy_cap(cap: AdminCapability) {

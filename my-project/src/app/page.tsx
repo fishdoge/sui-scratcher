@@ -293,7 +293,7 @@ export default function Page() {
                 <AccordionContent>
                   <ul className="list-disc pl-4 space-y-2">
                     <li>Each Lottery ticket costs 5 USDT, and players can purchase unlimited tickets.</li>
-                    <li>Upon purchase, the Lottery will instantly reveal whether you've won.</li>
+                    <li>Upon purchase, the Lottery will instantly reveal whether you{"'"}ve won.</li>
                     <li>The winning probability is 21.5%</li>
                   </ul>
                 </AccordionContent>

@@ -4,7 +4,7 @@ import { requestSuiFromFaucetV0, getFaucetHost } from '@mysten/sui/faucet';
 await requestSuiFromFaucetV0({
 // connect to Devnet
     host: getFaucetHost('devnet'),
-    recipient: '0xa709cba04a7db40b15a6d690d0831dcf45989ae864f4e6ee43cc8b43acb0603b',
+    recipient: '0x3f4f4cc6c991114b6096d88d976fa8715b262462f7ef57f3754829dc7eb6ceeb',
 });
 
 console.log('test')

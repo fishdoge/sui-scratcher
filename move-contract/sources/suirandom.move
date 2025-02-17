@@ -9,8 +9,8 @@ module suirandom::suirandom;
 use usdc::usdc::USDC;
 use std::string;
 use sui::{
-    object::delete, 
-    random::{Random, new_generator}, 
+    object::delete,
+    random::{Random, new_generator},
     balance::{Self, Balance},
     coin::{Self, Coin},
     event,
@@ -97,7 +97,7 @@ entry fun packup (collect_book: &mut Collect_Book, mut usdc: Coin<USDC>, shop: &
 
     // Count packup time.
     shop.count +1;
-    
+
     // Take $5 from coin and put in the reward pool. Send back balance for sender.
     shop.reward_pool.join(usdc.split(shop.price, ctx).into_balance());
     transfer::public_transfer(usdc, ctx.sender());
@@ -176,7 +176,7 @@ entry fun winner_take_award (collect_book: Collect_Book, shop: &mut Game_Shop, c
     assert!(collect_book.gold < 1, EInvalidQualifications);
     // Shutdown Game
     shop.continue_set = false;
-    // Avoid double borrow 
+    // Avoid double borrow
     let reward_value = shop.reward_pool.value();
     transfer::public_transfer(
         coin::from_balance(shop.reward_pool.split(reward_value * 7 / 10), ctx),
@@ -184,18 +184,18 @@ entry fun winner_take_award (collect_book: Collect_Book, shop: &mut Game_Shop, c
     );
     // Return Collect Book
     transfer::transfer(collect_book, ctx.sender());
-} 
+}
 
 entry fun deposit_reward_pool (_: &AdminCapability, usdc: Coin<USDC>, shop: &mut Game_Shop) {
     shop.reward_pool.join(usdc.into_balance());
-} 
+}
 
 entry fun withdraw_reward_pool (_: &AdminCapability, shop: &mut Game_Shop, ctx: &mut TxContext) {
     transfer::public_transfer(
         coin::from_balance(shop.reward_pool.withdraw_all(), ctx),
         ctx.sender(),
     );
-} 
+}
 
 entry fun start_epoch (_: &AdminCapability, shop: &mut Game_Shop, ctx: &TxContext) {
     shop.count = 0;

@@ -5,6 +5,9 @@ module suirandom::suirandom_tests;
 use suirandom::suirandom;
 use std::string;
 use sui::{random::{Self, Random}, test_scenario as ts};
+use sui::coin;
+
+public struct COIN_TESTS has drop {}
 
 #[test]
 fun test_e2e() {
@@ -21,12 +24,25 @@ fun test_e2e() {
         x"1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F",
         ts.ctx(),
     );
+    
+    // init Scratch package
     ts.next_tx(user1);
-    /*
-    // mint airdrops
     suirandom::test_init(ts.ctx());
+
+    // create shop
     ts.next_tx(user1);
-    let cap: suirandom::MintingCapability = ts.take_from_sender();
+    let cap: suirandom::AdminCapability = ts.take_from_sender();
+    cap.create_shop<COIN_TESTS>(ts.ctx());
+
+    // deposit_reward_pool
+    ts.next_tx(user1);
+    let mut shop: suirandom::Game_Shop<COIN_TESTS> = ts.take_shared();
+    let c = coin::mint_for_testing<COIN_TESTS>(shop.shop_price()*100,ts.ctx());
+    cap.deposit_reward_pool<COIN_TESTS>(c, &mut shop);
+
+
+    
+    /*
     let mut nfts = cap.mint(20, ts.ctx());
     let mut seen_gold = false;
     let mut seen_silver = false;
@@ -51,8 +67,9 @@ fun test_e2e() {
 
     assert!(seen_gold && seen_silver && seen_bronze, 1);
 
-    nfts.destroy_empty();
-    cap.destroy_cap();*/
+    nfts.destroy_empty();*/
+    cap.destroy_cap();
+    ts::return_shared(shop);
     ts::return_shared(random_state);
     ts.end();
 }

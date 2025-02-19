@@ -263,3 +263,8 @@ public struct CAPY has drop {}
 public fun test_init(ctx: &mut TxContext) {
     init(ctx)
 }
+
+#[test_only]
+public fun shop_price<T>(shop: &Game_Shop<T>): u64 {
+    shop.price
+}

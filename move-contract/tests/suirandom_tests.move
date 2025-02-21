@@ -40,6 +40,23 @@ fun test_e2e() {
     let c = coin::mint_for_testing<COIN_TESTS>(shop.shop_price()*100,ts.ctx());
     cap.deposit_reward_pool<COIN_TESTS>(c, &mut shop);
 
+    // start_new_collect_book
+    ts.next_tx(user1);
+    suirandom::start_new_collect_book<COIN_TESTS>(&shop, ts.ctx());
+
+    // packup
+    ts.next_tx(user1);
+    let mut collectbook : suirandom::Collect_Book = ts.take_from_sender();
+    let c2 = coin::mint_for_testing<COIN_TESTS>(shop.shop_price(),ts.ctx());
+    suirandom::packup<COIN_TESTS>(
+        &mut collectbook, 
+        c2, 
+        &mut shop,
+        &random_state,
+        ts.ctx()
+        );
+    
+
 
     
     /*
@@ -68,6 +85,7 @@ fun test_e2e() {
     assert!(seen_gold && seen_silver && seen_bronze, 1);
 
     nfts.destroy_empty();*/
+    collectbook.destroy_collect_book();
     cap.destroy_cap();
     ts::return_shared(shop);
     ts::return_shared(random_state);

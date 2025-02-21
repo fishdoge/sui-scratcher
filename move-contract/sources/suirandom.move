@@ -90,9 +90,9 @@ entry fun create_shop<T>(_: &AdminCapability, ctx: &mut TxContext) {
 }
 
 entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &mut Game_Shop<T>, r: &Random, ctx: &mut TxContext) {
-    assert!(shop.continue_set != true, EInvalidContinue);
-    assert!(coin.value() > shop.price, EInvalidBalance);
-    assert!(collect_book.epoch != shop.epoch, EInvalidOldCollectBook);
+    assert!(shop.continue_set == true, EInvalidContinue);
+    assert!(coin.value() <= shop.price, EInvalidBalance);
+    assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
 
     // Count packup time.
     shop.count = shop.count +1;
@@ -253,6 +253,17 @@ entry fun refresh_collect_book<T> (mut collect_book: Collect_Book, shop: &Game_S
 #[test_only]
 public fun destroy_cap(cap: AdminCapability) {
     let AdminCapability { id } = cap;
+    object::delete(id)
+}
+
+#[test_only]
+public fun destroy_collect_book(cap: Collect_Book) {
+    let Collect_Book { 
+        id,
+        gold,
+        silver,
+        bronze,
+        epoch} = cap;
     object::delete(id)
 }
 

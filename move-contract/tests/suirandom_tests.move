@@ -34,10 +34,14 @@ fun test_e2e() {
     let cap: suirandom::AdminCapability = ts.take_from_sender();
     cap.create_shop<COIN_TESTS>(ts.ctx());
 
-    // deposit_reward_pool
+    // set_price
     ts.next_tx(user1);
     let mut shop: suirandom::Game_Shop<COIN_TESTS> = ts.take_shared();
-    let c = coin::mint_for_testing<COIN_TESTS>(shop.shop_price()*100,ts.ctx());
+    cap.set_price<COIN_TESTS>(&mut shop, 5_000_000);
+
+    // deposit_reward_pool
+    ts.next_tx(user1);
+    let c = coin::mint_for_testing<COIN_TESTS>(100_000_000/*shop.shop_price()*100*/,ts.ctx());
     cap.deposit_reward_pool<COIN_TESTS>(c, &mut shop);
 
     // start_new_collect_book
@@ -47,7 +51,7 @@ fun test_e2e() {
     // packup
     ts.next_tx(user1);
     let mut collectbook : suirandom::Collect_Book = ts.take_from_sender();
-    let c2 = coin::mint_for_testing<COIN_TESTS>(shop.shop_price(),ts.ctx());
+    let c2 = coin::mint_for_testing<COIN_TESTS>(100_000_000/*shop.shop_price()*2*/,ts.ctx());
     suirandom::packup<COIN_TESTS>(
         &mut collectbook, 
         c2, 

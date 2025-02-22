@@ -91,7 +91,7 @@ entry fun create_shop<T>(_: &AdminCapability, ctx: &mut TxContext) {
 
 entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &mut Game_Shop<T>, r: &Random, ctx: &mut TxContext) {
     assert!(shop.continue_set == true, EInvalidContinue);
-    assert!(coin.value() <= shop.price, EInvalidBalance);
+    assert!(coin.value() >= shop.price, EInvalidBalance);
     assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
 
     // Count packup time.

@@ -14,7 +14,7 @@ use sui::{
     balance::{Self, Balance},
     coin::{Self, Coin},
     event,
-    };
+};
 
 const EInvalidContinue: u64 = 0;
 const EInvalidBalance: u64 = 1;

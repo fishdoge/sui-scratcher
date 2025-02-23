@@ -6,7 +6,6 @@
 /// The probability of getting a gold, silver, or bronze NFT is 10%, 30%, and 60% respectively.
 module suirandom::suirandom;
 
-use usdc::usdc::USDC;
 use std::string;
 use sui::{
     object::delete, 
@@ -43,11 +42,11 @@ public struct AdminCapability has key {
     count: how many ticket is sold out
     continue_set: epoch round control flag
 */
-public struct Game_Shop has key {
+public struct Game_Shop<phantom T> has key {
     id: UID,
     timestamp: u64,
     epoch: u64,
-    reward_pool: Balance<USDC>,
+    reward_pool: Balance<T>,
     price: u64,
     count: u64,
     continue_set: bool,
@@ -69,19 +68,6 @@ public struct Collect_Book has key {
 
 #[allow(unused_function)]
 fun init(ctx: &mut TxContext) {
-    // Initial Shop
-    transfer::share_object(
-        Game_Shop {
-            id: object::new(ctx),
-            timestamp: ctx.epoch_timestamp_ms(),
-            epoch: ctx.epoch(),
-            reward_pool: balance::zero<USDC>(),
-            price: 5000000000,
-            count: 0,
-            continue_set: true,
-        }
-    );
-
     // Transfer Admin Cap
     transfer::transfer(
         AdminCapability { id: object::new(ctx) },
@@ -89,18 +75,32 @@ fun init(ctx: &mut TxContext) {
     )
 }
 
+entry fun create_shop<T>(_: &AdminCapability, ctx: &mut TxContext) {
+    // Initial Shop
+    transfer::share_object(
+        Game_Shop {
+            id: object::new(ctx),
+            timestamp: ctx.epoch_timestamp_ms(),
+            epoch: ctx.epoch(),
+            reward_pool: balance::zero<T>(),
+            price: 5_000_000_000,
+            count: 0,
+            continue_set: true,
+        }
+    );
+}
 
-entry fun packup (collect_book: &mut Collect_Book, mut usdc: Coin<USDC>, shop: &mut Game_Shop, r: &Random, ctx: &mut TxContext) {
+entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &mut Game_Shop<T>, r: &Random, ctx: &mut TxContext) {
     assert!(shop.continue_set != true, EInvalidContinue);
-    assert!(usdc.value() > shop.price, EInvalidBalance);
+    assert!(coin.value() > shop.price, EInvalidBalance);
     assert!(collect_book.epoch != shop.epoch, EInvalidOldCollectBook);
 
     // Count packup time.
-    shop.count +1;
-    
+    shop.count = shop.count +1;
+
     // Take $5 from coin and put in the reward pool. Send back balance for sender.
-    shop.reward_pool.join(usdc.split(shop.price, ctx).into_balance());
-    transfer::public_transfer(usdc, ctx.sender());
+    shop.reward_pool.join(coin.split(shop.price, ctx).into_balance());
+    transfer::public_transfer(coin, ctx.sender());
 
     let mut generator = new_generator(r, ctx);
     let v = generator.generate_u8_in_range(1, 200);
@@ -171,12 +171,12 @@ entry fun packup (collect_book: &mut Collect_Book, mut usdc: Coin<USDC>, shop: &
 
 }
 
-entry fun winner_take_award (collect_book: Collect_Book, shop: &mut Game_Shop, ctx: &mut TxContext) {
+entry fun winner_take_award<T> (collect_book: Collect_Book, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
     assert!(shop.continue_set == false, EInvalidContinue);
     assert!(collect_book.gold < 1, EInvalidQualifications);
     // Shutdown Game
     shop.continue_set = false;
-    // Avoid double borrow 
+    // Avoid double borrow
     let reward_value = shop.reward_pool.value();
     transfer::public_transfer(
         coin::from_balance(shop.reward_pool.split(reward_value * 7 / 10), ctx),
@@ -184,41 +184,50 @@ entry fun winner_take_award (collect_book: Collect_Book, shop: &mut Game_Shop, c
     );
     // Return Collect Book
     transfer::transfer(collect_book, ctx.sender());
-} 
+}
 
-entry fun deposit_reward_pool (_: &AdminCapability, usdc: Coin<USDC>, shop: &mut Game_Shop) {
-    shop.reward_pool.join(usdc.into_balance());
-} 
+entry fun deposit_reward_pool<T> (_: &AdminCapability, coin: Coin<T>, shop: &mut Game_Shop<T>) {
+    shop.reward_pool.join(coin.into_balance());
+}
 
-entry fun withdraw_reward_pool (_: &AdminCapability, shop: &mut Game_Shop, ctx: &mut TxContext) {
+entry fun withdraw_reward_pool<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
     transfer::public_transfer(
         coin::from_balance(shop.reward_pool.withdraw_all(), ctx),
         ctx.sender(),
     );
-} 
+}
 
-entry fun start_epoch (_: &AdminCapability, shop: &mut Game_Shop, ctx: &TxContext) {
+entry fun set_price<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, price: u64) {
+    shop.price = price;
+}
+
+// Restart shop in different scenario
+entry fun start_epoch_when_gold_redeem<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &TxContext) {
     shop.count = 0;
     shop.timestamp = ctx.epoch_timestamp_ms();
-    shop.epoch + 1;
+    shop.epoch = shop.epoch + 1;
     shop.continue_set = true;
 }
 
-entry fun stop_epoch (_: &AdminCapability, shop: &mut Game_Shop) {
-    shop.continue_set = false;
-}
-
-entry fun emergency_start_epoch (_: &AdminCapability, shop: &mut Game_Shop) {
+entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &TxContext) {
+    shop.count = 0;
+    shop.timestamp = ctx.epoch_timestamp_ms();
+    shop.epoch = shop.epoch + 1;
     shop.continue_set = true;
 }
 
-entry fun emergency_stop_epoch (_: &AdminCapability, shop: &mut Game_Shop) {
+// Freeze Operator
+entry fun unfreeze_start_epoch<T> (_: &AdminCapability, shop: &mut Game_Shop<T>) {
+    shop.continue_set = true;
+}
+
+entry fun freeze_stop_epoch<T> (_: &AdminCapability, shop: &mut Game_Shop<T>) {
     shop.continue_set = false;
 }
 
 
 // User Operator
-entry fun start_new_collect_book (shop: &Game_Shop, ctx: &mut TxContext) {
+entry fun start_new_collect_book<T> (shop: &Game_Shop<T>, ctx: &mut TxContext) {
     transfer::transfer(
         Collect_Book {
             id: object::new(ctx),
@@ -231,6 +240,16 @@ entry fun start_new_collect_book (shop: &Game_Shop, ctx: &mut TxContext) {
     )
 }
 
+entry fun refresh_collect_book<T> (mut collect_book: Collect_Book, shop: &Game_Shop<T>, ctx: &TxContext) {
+    collect_book.gold= 0;
+    collect_book.silver= 0;
+    collect_book.bronze= 0;
+    collect_book.epoch= shop.epoch;
+    transfer::transfer(
+        collect_book,
+        ctx.sender()
+    );
+}
 
 #[test_only]
 public fun destroy_cap(cap: AdminCapability) {

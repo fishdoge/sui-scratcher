@@ -2,61 +2,39 @@
 
 [move]
 version = 3
-manifest_digest = "9704B7DB1D6AE64C0EE8EE098DDB5E3FF2859601DB0CBD5CBC264E35F941FCAF"
-deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
+manifest_digest = "B1E8D93DA8C08CA12C24B417AE1F6E790D06B98031004361D2F96CD1F16A96BB"
+deps_digest = "F8BBB0CCB2491CA29A3DF03D6F92277A4F3574266507ACD77214D37ECA3F3082"
 dependencies = [
   { id = "Sui", name = "Sui" },
-  { id = "usdc", name = "usdc" },
 ]
 
 [[move.package]]
 id = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates\\sui-framework\\packages\\move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/mainnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 id = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/mainnet", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
 ]
 
-[[move.package]]
-id = "stablecoin"
-source = { git = "https://github.com/circlefin/stablecoin-sui.git", rev = "8aca6be3599054438e4cae51dca1e238c0ad2656", subdir = "packages\\stablecoin" }
-
-dependencies = [
-  { id = "Sui", name = "Sui" },
-  { id = "sui_extensions", name = "sui_extensions" },
-]
-
-[[move.package]]
-id = "sui_extensions"
-source = { git = "https://github.com/circlefin/stablecoin-sui.git", rev = "8aca6be3599054438e4cae51dca1e238c0ad2656", subdir = "packages\\sui_extensions" }
-
-dependencies = [
-  { id = "Sui", name = "Sui" },
-]
-
-[[move.package]]
-id = "usdc"
-source = { git = "https://github.com/circlefin/stablecoin-sui.git", rev = "8aca6be3599054438e4cae51dca1e238c0ad2656", subdir = "packages/usdc" }
-
-dependencies = [
-  { id = "Sui", name = "Sui" },
-  { id = "stablecoin", name = "stablecoin" },
-  { id = "sui_extensions", name = "sui_extensions" },
-]
-
 [move.toolchain-version]
-compiler-version = "1.37.1"
+compiler-version = "1.40.3"
 edition = "2024.beta"
 flavor = "sui"
 
 [env]
 
+[env.testnet]
+chain-id = "4c78adac"
+original-published-id = "0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6"
+latest-published-id = "0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6"
+published-version = "1"
+
 [env.devnet]
 chain-id = "d4b9ca36"
-original-published-id = "0x57e7fe80b2c40da95735ca7c39680b751d7c1c12f74f84129f85e6c4468039af"
-latest-published-id = "0x57e7fe80b2c40da95735ca7c39680b751d7c1c12f74f84129f85e6c4468039af"
+original-published-id = "0x62949a788bee0c79f4f26739789c0043a6ea0a0863d9572c2261d270ae006e34"
+latest-published-id = "0x62949a788bee0c79f4f26739789c0043a6ea0a0863d9572c2261d270ae006e34"
 published-version = "1"

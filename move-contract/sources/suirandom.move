@@ -102,11 +102,11 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
     transfer::public_transfer(coin, ctx.sender());
 
     let mut generator = new_generator(r, ctx);
-    let v = generator.generate_u8_in_range(1, 200);
+    let random_value = generator.generate_u8_in_range(1, 200);
 
     // 200 - 43 + 14 * 2 + 6 * 2 + 1 * 2 + 0.5 * 2 = 200
     // 0 < 78.5 < 92.5 < 98.5 < 99.5 < 100
-    if (v <= 157/*78.5%*/) {
+    if (random_value <= 157/*78.5%*/) {
         shop.continue_set = true;
         collect_book.bronze = collect_book.bronze + 0;
         transfer::public_transfer(
@@ -116,33 +116,33 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
         event::emit(WinnerEvent {
             awards: string::utf8(b"None"),
             winner: ctx.sender(),
-            seed_number: v,
+            seed_number: random_value,
         });
-    } else if (v <= 185/*14%*/) {
+    } else if (random_value <= 185/*14%*/) {
         shop.continue_set = true;
         collect_book.bronze = collect_book.bronze + 1;
         transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(10_000_000_000), ctx),
+            coin::from_balance(shop.reward_pool.split(shop.price*2), ctx),
             ctx.sender(),
         );
         event::emit(WinnerEvent {
             awards: string::utf8(b"Bronze"),
             winner: ctx.sender(),
-            seed_number: v,
+            seed_number: random_value,
         });
-    } else if (v <= 197/*6%*/) {
+    } else if (random_value <= 197/*6%*/) {
         shop.continue_set = true;
         collect_book.silver = collect_book.silver + 1;
         transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(20_000_000_000), ctx),
+            coin::from_balance(shop.reward_pool.split(shop.price*4), ctx),
             ctx.sender(),
         );
         event::emit(WinnerEvent {
             awards: string::utf8(b"Silver"),
             winner: ctx.sender(),
-            seed_number: v,
+            seed_number: random_value,
         });
-    } else if (v <= 199/*1%*/) {
+    } else if (random_value <= 199/*1%*/) {
         shop.continue_set = true;
         collect_book.gold = collect_book.gold + 1;
         transfer::public_transfer(
@@ -152,9 +152,9 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
         event::emit(WinnerEvent {
             awards: string::utf8(b"Gold"),
             winner: ctx.sender(),
-            seed_number: v,
+            seed_number: random_value,
         });
-    } else if (v <= 200/*0.5*/){
+    } else if (random_value <= 200/*0.5*/){
         shop.continue_set = false;
         collect_book.gold = collect_book.gold + 0;
         transfer::public_transfer(
@@ -164,7 +164,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
         event::emit(WinnerEvent {
             awards: string::utf8(b"epoch Off"),
             winner: ctx.sender(),
-            seed_number: v,
+            seed_number: random_value,
         });
     };
 

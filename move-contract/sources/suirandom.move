@@ -10,7 +10,7 @@ use std::string;
 use sui::{
         random::{Random, new_generator},
         balance::{Self, Balance},
-        coin::{Self, Coin},
+        coin::{Self, Coin, CoinMetadata},
         event,
     };
 
@@ -74,15 +74,21 @@ fun init(ctx: &mut TxContext) {
     )
 }
 
-entry fun create_shop<T>(_: &AdminCapability, ctx: &mut TxContext) {
+entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut TxContext) {
     // Initial Shop
+    let mut decimals = meta.get_decimals();
+    let mut price = 5;
+    while(decimals==0){
+        price = price*10;
+        decimals = decimals - 1;
+    };
     transfer::share_object(
         Game_Shop {
             id: object::new(ctx),
             timestamp: ctx.epoch_timestamp_ms(),
             epoch: ctx.epoch(),
             reward_pool: balance::zero<T>(),
-            price: 5_000_000_000,
+            price: 5,
             count: 0,
             continue_set: true,
         }

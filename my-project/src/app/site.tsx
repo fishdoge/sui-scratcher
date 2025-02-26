@@ -6,7 +6,7 @@ import confetti from "canvas-confetti"
 import { Sparkles, Menu, X, Trophy, Users, Ticket, Info, History, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { ConnectButton,useCurrentWallet} from '@mysten/dapp-kit';
+import { ConnectButton,useCurrentWallet,useCurrentAccount } from '@mysten/dapp-kit';
 
 
 // Mock purchase history data
@@ -22,16 +22,13 @@ export default function Site() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRevealed, setIsRevealed] = useState(false)
   const [isScratchStarted, setIsScratchStarted] = useState(false)
-  const { connectionStatus, connect, disconnect } = useCurrentWallet();
+  const { connectionStatus } = useCurrentWallet();
+  const account = useCurrentAccount();
 
+  
   useEffect(()=>{
     console.log(connectionStatus)
   },[connectionStatus])
-
-
-  const test =()=>{
-    console.log(connectionStatus)
-  }
 
 
   const poolInfo = {
@@ -79,10 +76,11 @@ export default function Site() {
               <a href="#" className="text-gray-600 hover:text-purple-600 transition-colors">
                 How to Play
               </a>
-                <ConnectButton onClick={test} className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-1.5 px-4 rounded ">Connect Wallet</ConnectButton>
-                {/* <Button className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-1.5 px-4 rounded " onClick={() => connect()}>
-                  {connectionStatus === "connected" ? "Connected" : "Connect Wallet"}
-                </Button> */}
+              {account?<div>Address : {account?.address.substring(0, 9)}</div>:<div>wallet not connect</div>
+
+              }
+        
+              
             </div>
 
             {/* Mobile Menu Button */}
@@ -243,6 +241,9 @@ export default function Site() {
                       </motion.div>
                     )}
                   </div>
+                </div>
+                <div className="w-full h-8 text-center mb-6 bg-green-300  to-blue-300 rounded">
+                  <p className="text-xl font-bold from-green-600">Your USDT balance : </p>
                 </div>
 
                 <Button

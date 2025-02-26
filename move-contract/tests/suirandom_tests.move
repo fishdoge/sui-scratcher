@@ -1,13 +1,18 @@
 
-#[test_only]
+#[test_only, allow(deprecated_usage)]
 module suirandom::suirandom_tests;
 
 use suirandom::suirandom;
 use std::string;
-use sui::{random::{Self, Random}, test_scenario as ts};
-use sui::coin;
+use sui::{
+    random::{Self, Random}, 
+    test_scenario as ts,
+    coin::{Self, CoinMetadata},
+    url,
+    test_utils::create_one_time_witness
+    };
 
-public struct COIN_TESTS has drop {}
+public struct SUIRANDOM_TESTS has drop {}
 
 #[test]
 fun test_e2e() {
@@ -15,6 +20,18 @@ fun test_e2e() {
     let user0 = @0x0;
     let user1 = @0x1;
     let mut ts = ts::begin(user0);
+    // Setup CoinMeta
+    // let meta = coin::create_treasury_cap_for_testing<COIN_TESTS>(ts.ctx());
+    let otw = create_one_time_witness<SUIRANDOM_TESTS>();
+    let (_treasury, mut meta) = coin::create_currency(
+		otw,
+		6,
+		b"COIN_TESTS",
+		b"coin_name",
+		b"description",
+		option::some(url::new_unsafe_from_bytes(b"icon_url")),
+		ts.ctx()
+	);
     // Setup randomness
     random::create_for_testing(ts.ctx());
     ts.next_tx(user0);
@@ -32,27 +49,28 @@ fun test_e2e() {
     // create shop
     ts.next_tx(user1);
     let cap: suirandom::AdminCapability = ts.take_from_sender();
-    cap.create_shop<COIN_TESTS>(ts.ctx());
+    //let meta: coin::CoinMetadata<COIN_TESTS> = ts.take_shared();
+    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
 
     // set_price
     ts.next_tx(user1);
-    let mut shop: suirandom::Game_Shop<COIN_TESTS> = ts.take_shared();
-    cap.set_price<COIN_TESTS>(&mut shop, 5_000_000);
+    let mut shop: suirandom::Game_Shop<SUIRANDOM_TESTS> = ts.take_shared();
+    cap.set_price<SUIRANDOM_TESTS>(&mut shop, 5_000_000);
 
     // deposit_reward_pool
     ts.next_tx(user1);
-    let c = coin::mint_for_testing<COIN_TESTS>(100_000_000/*shop.shop_price()*100*/,ts.ctx());
-    cap.deposit_reward_pool<COIN_TESTS>(c, &mut shop);
+    let c = coin::mint_for_testing<SUIRANDOM_TESTS>(100_000_000/*shop.shop_price()*100*/,ts.ctx());
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop);
 
     // start_new_collect_book
     ts.next_tx(user1);
-    suirandom::start_new_collect_book<COIN_TESTS>(&shop, ts.ctx());
+    suirandom::start_new_collect_book<SUIRANDOM_TESTS>(&shop, ts.ctx());
 
     // packup
     ts.next_tx(user1);
     let mut collectbook : suirandom::Collect_Book = ts.take_from_sender();
-    let c2 = coin::mint_for_testing<COIN_TESTS>(100_000_000/*shop.shop_price()*2*/,ts.ctx());
-    suirandom::packup<COIN_TESTS>(
+    let c2 = coin::mint_for_testing<SUIRANDOM_TESTS>(100_000_000/*shop.shop_price()*2*/,ts.ctx());
+    suirandom::packup<SUIRANDOM_TESTS>(
         &mut collectbook, 
         c2, 
         &mut shop,
@@ -91,6 +109,8 @@ fun test_e2e() {
     nfts.destroy_empty();*/
     collectbook.destroy_collect_book();
     cap.destroy_cap();
+    ts::return_shared(meta);
+    ts::return_shared(_treasury);
     ts::return_shared(shop);
     ts::return_shared(random_state);
     ts.end();

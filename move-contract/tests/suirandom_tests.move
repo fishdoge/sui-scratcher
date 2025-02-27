@@ -9,7 +9,8 @@ use sui::{
     test_scenario as ts,
     coin::{Self, CoinMetadata},
     url,
-    test_utils::create_one_time_witness
+    test_utils::create_one_time_witness,
+    test_utils::destroy
     };
 
 public struct SUIRANDOM_TESTS has drop {}
@@ -109,8 +110,8 @@ fun test_e2e() {
     nfts.destroy_empty();*/
     collectbook.destroy_collect_book();
     cap.destroy_cap();
-    ts::return_shared(meta);
-    ts::return_shared(_treasury);
+    destroy(meta);
+    destroy(_treasury);
     ts::return_shared(shop);
     ts::return_shared(random_state);
     ts.end();

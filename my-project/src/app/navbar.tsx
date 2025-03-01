@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SuiTransactionBlockResponse } from '@mysten/sui/client';
@@ -9,8 +11,7 @@ import {
   useCurrentWallet,
   useCurrentAccount,
   useSignAndExecuteTransaction,
-  useSignTransaction,
-  useSuiClient,
+
 } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 
@@ -20,49 +21,47 @@ export default function Navbar() {
   const account = useCurrentAccount();
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const [digest, setDigest] = useState('');
-  const { mutateAsync: signTransaction } = useSignTransaction();
-  const client = useSuiClient();
 
   useEffect(() => {
     console.log(connectionStatus);
   }, [connectionStatus]);
 
-  const excuteTransaciot = async () => {
-    const ticketTx = new Transaction();
-    // const [coin1] = ticketTx.splitCoins(ticketTx.gas, [100000]);
-    ticketTx.moveCall({
-      target:
-        '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::start_new_collect_book',
-      typeArguments: [
-        '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
-      ],
-      arguments: [
-        ticketTx.object(
-          '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
-        ),
-      ],
-    });
-    //ticketTx.transferObjects([coin1], '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6');
+  // const excuteTransaciot = async () => {
+  //   const ticketTx = new Transaction();
+  //   // const [coin1] = ticketTx.splitCoins(ticketTx.gas, [100000]);
+  //   ticketTx.moveCall({
+  //     target:
+  //       '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::start_new_collect_book',
+  //     typeArguments: [
+  //       '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
+  //     ],
+  //     arguments: [
+  //       ticketTx.object(
+  //         '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
+  //       ),
+  //     ],
+  //   });
+  //   //ticketTx.transferObjects([coin1], '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6');
 
-    const { bytes, signature, reportTransactionEffects } =
-      await signTransaction({
-        transaction: ticketTx,
-        chain: 'sui:testnet',
-      });
+  //   const { bytes, signature, reportTransactionEffects } =
+  //     await signTransaction({
+  //       transaction: ticketTx,
+  //       chain: 'sui:testnet',
+  //     });
 
-    const executeResult = await client.executeTransactionBlock({
-      transactionBlock: bytes,
-      signature,
-      options: {
-        showRawEffects: true,
-      },
-    });
+  //   const executeResult = await client.executeTransactionBlock({
+  //     transactionBlock: bytes,
+  //     signature,
+  //     options: {
+  //       showRawEffects: true,
+  //     },
+  //   });
 
-    // Always report transaction effects to the wallet after execution
-    reportTransactionEffects(executeResult.rawEffects!);
+  //   // Always report transaction effects to the wallet after execution
+  //   reportTransactionEffects(executeResult.rawEffects!);
 
-    console.log(executeResult);
-  };
+  //   console.log(executeResult);
+  // };
 
   const getGameTicket = async () => {
     console.log('excute');
@@ -90,9 +89,9 @@ export default function Navbar() {
           chain: 'sui:testnet',
         },
         {
-          onSuccess: (result: SuiTransactionBlockResponse) => {
+          onSuccess: (result: any) => {
             console.log('executed transaction', result);
-            setDigest(result.digest);
+            setDigest(result?.digest);
           },
         }
       );
@@ -100,6 +99,8 @@ export default function Navbar() {
       console.error(e);
     }
   };
+
+
 
   const sendTransaction = async () => {
     const tx1 = new Transaction();

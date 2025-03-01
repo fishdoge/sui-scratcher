@@ -19,9 +19,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import {
-  useCurrentWallet,
-} from '@mysten/dapp-kit';
+import { useCurrentWallet } from '@mysten/dapp-kit';
 
 import Navbar from './navbar';
 
@@ -48,6 +46,7 @@ export default function Site() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isScratchStarted, setIsScratchStarted] = useState(false);
   const { connectionStatus } = useCurrentWallet();
+  const [gameState, setgameState] = useState(0);
 
   useEffect(() => {
     console.log(connectionStatus);
@@ -62,7 +61,7 @@ export default function Site() {
 
   const triggerConfetti = () => {
     confetti({
-      particleCount: 100,
+      particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
     });
@@ -73,10 +72,48 @@ export default function Site() {
     triggerConfetti();
   };
 
+  const playScratcr = (): number => {
+    const number = Math.floor(Math.random() * 4) + 1;
+
+    return number;
+  };
+
+  const returnGameState = (status: number) => {
+    switch (status) {
+      case 1:
+        return (
+          <div className="w-20 h-20 rounded-full bg-[#2F4C3A] flex items-center justify-center text-white font-bold">
+            You Lose
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 flex items-center justify-center text-white font-bold">
+            Grand Prize
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold">
+            Second Prize
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-red-500 to-blue-600 flex items-center justify-center text-white font-bold">
+            Grand Prize
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-blue-50">
       {/* Navbar */}
-      <Navbar/>
+      <Navbar />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 pt-24 pb-16">
@@ -184,8 +221,12 @@ export default function Site() {
 
                 {/* Scratch Area */}
                 <div
-                  className="relative bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl p-8 mb-6 cursor-pointer"
+                  className="relative h-[180px] bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl p-8 mb-6 cursor-pointer"
                   onClick={() => {
+                    const status = playScratcr();
+                    console.log(status);
+                    setgameState(status);
+
                     if (!isScratchStarted) {
                       setIsScratchStarted(true);
                       setTimeout(revealNumber, 1000);
@@ -194,27 +235,40 @@ export default function Site() {
                 >
                   <div className="text-center">
                     {!isScratchStarted ? (
-                      <p className="text-gray-600">Click to scratch!</p>
-                    ) : !isRevealed ? (
-                      <p className="text-gray-600">Scratching...</p>
+                      <div>
+                        {' '}
+                        <h3 className="text-3xl font-bold text-purple-400 mb-2 mt-8">
+                          Click to scratch!
+                        </h3>
+                        {/* <Button>scratch</Button> */}
+                      </div>
+                    ) : // <p className="text-gray-600">Click to scratch!</p>
+                    !isRevealed ? (
+                      <h3 className="text-2xl font-bold text-purple-400 mb-2 mt-8">
+                      Scratching...
+                    </h3>
+
                     ) : (
+                      // <p className="text-gray-600">Scratching...</p>
                       <motion.div
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5 }}
                       >
                         <h3 className="text-2xl font-bold text-purple-600 mb-2">
-                          Your Numbers
+                          Winning result
                         </h3>
                         <div className="flex justify-center gap-3">
-                          {[12, 24, 36, 48, 60].map((number, index) => (
-                            <div
-                              key={index}
-                              className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold"
+                          {/*
+                           <div
+
+                              className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold"
                             >
-                              {number}
-                            </div>
-                          ))}
+                             Grand Prize
+
+                            </div> */}
+
+                          {returnGameState(gameState)}
                         </div>
                       </motion.div>
                     )}

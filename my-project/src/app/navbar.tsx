@@ -7,7 +7,7 @@ import {
   SuiClient,
   getFullnodeUrl,
   PaginatedObjectsResponse,
-  GetObjectParams
+  GetObjectParams,
 } from '@mysten/sui/client';
 
 import { Sparkles, Menu, X } from 'lucide-react';
@@ -18,7 +18,6 @@ import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
   useSuiClientQuery,
-
 } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 type userObject = {
@@ -31,7 +30,7 @@ export default function Navbar() {
   const account = useCurrentAccount();
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const [digest, setDigest] = useState('');
-  const [userObjects, setUserObjects] = useState<userObject|null>();
+  const [userOwnObjects, setUserObjects] = useState<userObject | null>();
 
   const client = new SuiClient({
     url: getFullnodeUrl('testnet'),
@@ -39,15 +38,17 @@ export default function Navbar() {
 
   useEffect(() => {
     const getUserObjectLog = async () => {
+      if (!account?.address) {
+        return;
+      }
+
       const userObjects = await client.getOwnedObjects({
-        owner:
-          '0x3f4f4cc6c991114b6096d88d976fa8715b262462f7ef57f3754829dc7eb6ceeb',
-          options: { showType: true, showContent: true },
+        owner: account?.address,
+        options: { showType: true, showContent: true },
       });
 
       const usdtCoins = await client.getCoins({
-        owner:
-          '0x3f4f4cc6c991114b6096d88d976fa8715b262462f7ef57f3754829dc7eb6ceeb',
+        owner: account?.address,
         coinType:
           '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
       });
@@ -73,37 +74,43 @@ export default function Navbar() {
       });
 
       const coinBalance = await client.getBalance({
-        owner: '0xe67ebf92a256811389e642038ad7e56a887e627a2399e634e277eadf0911e4a9',
-        coinType: '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book',
+        owner:
+          '0xe67ebf92a256811389e642038ad7e56a887e627a2399e634e277eadf0911e4a9',
+        coinType:
+          '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book',
       });
 
       let colloctBook;
 
-      userObjects.data.map((index)=>{
-       if(index.data?.type === '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book'){
-        colloctBook = index.data.objectId
-       }
-      })
+      userObjects.data.map((index) => {
+        if (
+          index.data?.type ===
+          '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book'
+        ) {
+          colloctBook = index.data.objectId;
+        }
+      });
 
       console.log('objects', biggestObject);
       console.log('coinValue', coinValue);
-      console.log('colloctBookObject',colloctBook);
+      console.log('colloctBookObject', colloctBook);
       //console.log('coinBalance',coinBalance)
 
       const data = {
-        collectBook:colloctBook,
-        usdTokenObject:biggestObject
-      }
+        collectBook: colloctBook,
+        usdTokenObject: biggestObject,
+      };
 
-      setUserObjects(data)
+      setUserObjects(data);
 
-
+      console.log('playObject', data);
     };
     getUserObjectLog();
-  }, []);
+  }, [connectionStatus]);
 
   useEffect(() => {
     console.log(connectionStatus);
+    console.log('account', account?.address);
   }, [connectionStatus]);
 
   // const excuteTransaciot = async () => {
@@ -159,6 +166,53 @@ export default function Navbar() {
         ticketTx.object(
           '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
         ),
+      ],
+    });
+
+    try {
+      await signAndExecuteTransaction(
+        {
+          transaction: ticketTx,
+          chain: 'sui:testnet',
+        },
+        {
+          onSuccess: (result: any) => {
+            console.log('executed transaction', result);
+            setDigest(result?.digest);
+          },
+        }
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const playSuiScratcher = async () => {
+    const ticketTx = new Transaction();
+
+    console.log(userOwnObjects);
+
+    if (!userOwnObjects?.collectBook || !userOwnObjects?.usdTokenObject) {
+      throw new Error('usdTokenObject');
+    }
+
+    ticketTx.moveCall({
+      target:
+        '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::packup',
+      typeArguments: [
+        '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
+      ],
+      arguments: [
+        ticketTx.object(
+          userOwnObjects.collectBook
+        ),
+        ticketTx.object(
+          userOwnObjects.usdTokenObject
+        ),
+        ticketTx.object(
+          '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
+        ),
+        ticketTx.object('0x8'),
       ],
     });
 
@@ -239,6 +293,7 @@ export default function Navbar() {
               <>
                 <div>Address : {account?.address.substring(0, 9)}</div>
                 <Button onClick={getGameTicket}>Get tickets</Button>
+                <Button onClick={playSuiScratcher}>Play!</Button>
               </>
             ) : (
               <div>wallet not connect</div>

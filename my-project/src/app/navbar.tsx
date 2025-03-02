@@ -2,7 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import {
+  SuiTransactionBlockResponse,
+  SuiClient,
+  getFullnodeUrl,
+  PaginatedObjectsResponse,
+  GetObjectParams
+} from '@mysten/sui/client';
 
 import { Sparkles, Menu, X } from 'lucide-react';
 
@@ -11,16 +17,90 @@ import {
   useCurrentWallet,
   useCurrentAccount,
   useSignAndExecuteTransaction,
+  useSuiClientQuery,
 
 } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
-
+type userObject = {
+  collectBook: string | undefined;
+  usdTokenObject: string | undefined;
+};
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { connectionStatus } = useCurrentWallet();
+  const { connectionStatus, currentWallet } = useCurrentWallet();
   const account = useCurrentAccount();
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const [digest, setDigest] = useState('');
+  const [userObjects, setUserObjects] = useState<userObject|null>();
+
+  const client = new SuiClient({
+    url: getFullnodeUrl('testnet'),
+  });
+
+  useEffect(() => {
+    const getUserObjectLog = async () => {
+      const userObjects = await client.getOwnedObjects({
+        owner:
+          '0x3f4f4cc6c991114b6096d88d976fa8715b262462f7ef57f3754829dc7eb6ceeb',
+          options: { showType: true, showContent: true },
+      });
+
+      const usdtCoins = await client.getCoins({
+        owner:
+          '0x3f4f4cc6c991114b6096d88d976fa8715b262462f7ef57f3754829dc7eb6ceeb',
+        coinType:
+          '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
+      });
+
+      let coinValue = 0;
+      let biggestObjectValue = 0;
+      let biggestObject;
+      usdtCoins.data.map((index) => {
+        const val = index.balance;
+        if (parseInt(val) > 0) {
+          coinValue += parseInt(val);
+          if (biggestObjectValue < parseInt(val)) {
+            biggestObjectValue = parseInt(val);
+            biggestObject = index.coinObjectId;
+          }
+        }
+      });
+
+      const objectTxc = await client.getObject({
+        id: '0x3332595c528a1733693d7508479caad355f4e1d382abe121b9a94dfdd55c5490',
+        // fetch the object content field
+        options: { showContent: true },
+      });
+
+      const coinBalance = await client.getBalance({
+        owner: '0xe67ebf92a256811389e642038ad7e56a887e627a2399e634e277eadf0911e4a9',
+        coinType: '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book',
+      });
+
+      let colloctBook;
+
+      userObjects.data.map((index)=>{
+       if(index.data?.type === '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book'){
+        colloctBook = index.data.objectId
+       }
+      })
+
+      console.log('objects', biggestObject);
+      console.log('coinValue', coinValue);
+      console.log('colloctBookObject',colloctBook);
+      //console.log('coinBalance',coinBalance)
+
+      const data = {
+        collectBook:colloctBook,
+        usdTokenObject:biggestObject
+      }
+
+      setUserObjects(data)
+
+
+    };
+    getUserObjectLog();
+  }, []);
 
   useEffect(() => {
     console.log(connectionStatus);
@@ -99,8 +179,6 @@ export default function Navbar() {
       console.error(e);
     }
   };
-
-
 
   const sendTransaction = async () => {
     const tx1 = new Transaction();

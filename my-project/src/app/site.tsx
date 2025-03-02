@@ -245,9 +245,8 @@ export default function Site() {
                     ) : // <p className="text-gray-600">Click to scratch!</p>
                     !isRevealed ? (
                       <h3 className="text-2xl font-bold text-purple-400 mb-2 mt-8">
-                      Scratching...
-                    </h3>
-
+                        Scratching...
+                      </h3>
                     ) : (
                       // <p className="text-gray-600">Scratching...</p>
                       <motion.div

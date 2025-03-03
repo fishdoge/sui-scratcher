@@ -28,7 +28,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { connectionStatus, currentWallet } = useCurrentWallet();
   const account = useCurrentAccount();
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { mutate: signAndExecuteTransaction, mutateAsync } = useSignAndExecuteTransaction();
   const [digest, setDigest] = useState('');
   const [userOwnObjects, setUserObjects] = useState<userObject | null>();
 
@@ -158,7 +158,7 @@ export default function Navbar() {
 
     ticketTx.moveCall({
       target:
-        '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::start_new_collect_book',
+        '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::start_new_collect_book',
       typeArguments: [
         '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
       ],
@@ -170,7 +170,7 @@ export default function Navbar() {
     });
 
     try {
-      await signAndExecuteTransaction(
+      await mutateAsync(
         {
           transaction: ticketTx,
           chain: 'sui:testnet',
@@ -217,7 +217,7 @@ export default function Navbar() {
     });
 
     try {
-      await signAndExecuteTransaction(
+      await mutateAsync(
         {
           transaction: ticketTx,
           chain: 'sui:testnet',

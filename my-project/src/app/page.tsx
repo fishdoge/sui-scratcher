@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getFullnodeUrl } from '@mysten/sui/client';
 import { AuthProvider } from '@/app/context/authContext';
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
 
 const WalletProvider = dynamic(
   () => import('@mysten/dapp-kit').then((mod) => mod.WalletProvider),
@@ -18,6 +19,7 @@ const WalletProvider = dynamic(
 const { networkConfig } = createNetworkConfig({
   localnet: { url: getFullnodeUrl('localnet') },
   mainnet: { url: getFullnodeUrl('mainnet') },
+  testnet: { url: getFullnodeUrl('testnet') },
   devnet: { url: 'https://fullnode.devnet.sui.io:443' },
 });
 
@@ -26,7 +28,7 @@ const queryClient = new QueryClient();
 export default function Page() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SuiClientProvider networks={networkConfig} defaultNetwork="mainnet">
+      <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
         <WalletProvider>
           <AuthProvider>
             <Site />

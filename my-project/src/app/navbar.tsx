@@ -18,8 +18,10 @@ import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
   useSuiClientQuery,
+  useSuiClientContext,
 } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
+
 type userObject = {
   collectBook: string | undefined;
   usdTokenObject: string | undefined;
@@ -28,7 +30,8 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { connectionStatus, currentWallet } = useCurrentWallet();
   const account = useCurrentAccount();
-  const { mutate: signAndExecuteTransaction, mutateAsync } = useSignAndExecuteTransaction();
+  const { mutate: signAndExecuteTransaction, mutateAsync } =
+    useSignAndExecuteTransaction();
   const [digest, setDigest] = useState('');
   const [userOwnObjects, setUserObjects] = useState<userObject | null>();
 
@@ -203,12 +206,8 @@ export default function Navbar() {
         '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
       ],
       arguments: [
-        ticketTx.object(
-          userOwnObjects.collectBook
-        ),
-        ticketTx.object(
-          userOwnObjects.usdTokenObject
-        ),
+        ticketTx.object(userOwnObjects.collectBook),
+        ticketTx.object(userOwnObjects.usdTokenObject),
         ticketTx.object(
           '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
         ),
@@ -263,6 +262,25 @@ export default function Navbar() {
     console.log('digest', digest);
   };
 
+  function NetworkSelector() {
+    const ctx = useSuiClientContext();
+
+    const switchNetwork = (network: string) => {
+      ctx.selectNetwork(network);
+      console.log(`Switch to ${ctx.network}`);
+    };
+
+    return (
+      <div>
+        {Object.keys(ctx.networks).map((network) => (
+          <button key={network} onClick={() => switchNetwork(network)}>
+            {` ${network}`}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md border-b">
       <div className="container mx-auto px-4">
@@ -311,6 +329,7 @@ export default function Navbar() {
               <Menu className="h-6 w-6 text-gray-600" />
             )}
           </ConnectButton>
+          {/* <NetworkSelector /> */}
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useEffect, useState,useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Trophy, Users, Ticket, Info, History, Clock } from 'lucide-react';
@@ -20,24 +20,15 @@ import {
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 
+interface historyType {
+  id: number;
+  time: string;
+  prize: string;
+  dist:string
+}
+
 // Mock purchase history data
-const purchaseHistory = [
-  {
-    id: 1,
-    time: '2024-02-17 13:45',
-    result: 'Regular Prize (10 USDT)',
-    status: 'won',
-  },
-  { id: 2, time: '2024-02-17 13:30', result: 'No Win', status: 'lost' },
-  {
-    id: 3,
-    time: '2024-02-17 13:15',
-    result: 'Special Prize (20 USDT)',
-    status: 'won',
-  },
-  { id: 4, time: '2024-02-17 13:00', result: 'No Win', status: 'lost' },
-  { id: 5, time: '2024-02-17 12:45', result: 'No Win', status: 'lost' },
-];
+const purchaseHistory: historyType[] = [];
 
 type userObject = {
   collectBook: string | undefined;
@@ -51,11 +42,9 @@ const client = new SuiClient({
 export default function Scratcher() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isScratchStarted, setIsScratchStarted] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { connectionStatus, currentWallet } = useCurrentWallet();
+  const { connectionStatus } = useCurrentWallet();
   const account = useCurrentAccount();
   const { mutateAsync } = useSignAndExecuteTransaction();
-  const [digest, setDigest] = useState('');
   const [userOwnObjects, setUserObjects] = useState<userObject | null>();
 
   const newGameState = useRef<string>('');
@@ -117,6 +106,7 @@ export default function Scratcher() {
       console.log('playObject', data);
     };
     getUserObjectLog();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionStatus]);
 
   const poolInfo = {
@@ -139,55 +129,54 @@ export default function Scratcher() {
     triggerConfetti();
   };
 
+//   const getGameTicket = async () => {
+//     console.log('excute');
 
-  const getGameTicket = async () => {
-    console.log('excute');
+//     const ticketTx = new Transaction();
+//     //const [SUI] = ticketTx.splitCoins(ticketTx.gas, [1_000_000]);
 
-    const ticketTx = new Transaction();
-    //const [SUI] = ticketTx.splitCoins(ticketTx.gas, [1_000_000]);
+//     ticketTx.moveCall({
+//       target:
+//         '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::start_new_collect_book',
+//       typeArguments: [
+//         '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
+//       ],
+//       arguments: [
+//         ticketTx.object(
+//           '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
+//         ),
+//       ],
+//     });
 
-    ticketTx.moveCall({
-      target:
-        '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::start_new_collect_book',
-      typeArguments: [
-        '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
-      ],
-      arguments: [
-        ticketTx.object(
-          '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
-        ),
-      ],
-    });
-
-    try {
-      await mutateAsync(
-        {
-          transaction: ticketTx,
-          chain: 'sui:testnet',
-        },
-        {
-          onSuccess: (result: any) => {
-            console.log('executed transaction', result);
-            setDigest(result?.digest);
-          },
-        }
-      );
-    } catch (e) {
-      console.error(e);
-    }
-  };
+//     try {
+//       await mutateAsync(
+//         {
+//           transaction: ticketTx,
+//           chain: 'sui:testnet',
+//         },
+//         {
+//           onSuccess: (result: any) => {
+//             console.log('executed transaction', result);
+//             setDigest(result?.digest);
+//           },
+//         }
+//       );
+//     } catch (e) {
+//       console.error(e);
+//     }
+//   };
 
   function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  const playSuiScratcher = async () => {
+  const playSuiScratcher = async (): Promise<string> => {
     const ticketTx = new Transaction();
 
     console.log(userOwnObjects);
 
     if (!userOwnObjects?.collectBook || !userOwnObjects?.usdTokenObject) {
-      throw new Error('usdTokenObject');
+      return 'error';
     }
 
     ticketTx.moveCall({
@@ -207,58 +196,69 @@ export default function Scratcher() {
     });
 
     try {
+      const result = await mutateAsync({
+        transaction: ticketTx,
+        chain: 'sui:testnet',
+      });
+
+      if (!result || !result.digest) {
+        console.error('Transaction failed or digest missing.');
+        return 'error';
+      }
+
+      console.log('digest', result.digest);
+      return result.digest;
+    } catch (error) {
+      console.error('Transaction error:', error);
+      return 'error';
+    }
+  };
+
+  const getCurrentDateTime = () => {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1; // 月份從0開始，所以+1
+    const date = now.getDate();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    return `${year}/${month}/${date} ${hours}:${minutes}`;
+  };
+  const digeestt = async () => {
+    const ticketTxse = new Transaction();
+
+    ticketTxse.moveCall({
+      target:
+        '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::faucet',
+      arguments: [
+        ticketTxse.object(
+          '0xf0a1515e4ab64b7fa3252d659e0b21c8152c451e4a61309690859c59fcba8fb3'
+        ),
+      ],
+    });
+
+    try {
       await mutateAsync(
         {
-          transaction: ticketTx,
+          transaction: ticketTxse,
           chain: 'sui:testnet',
         },
         {
           onSuccess: async (result: any) => {
             // const { digest } = data;
             console.log('digest', result?.digest);
-            const dataDigest = result?.digest;
-            await sleep(2000);
-
-            const txnDetails:any = await client.getTransactionBlock({
-              digest: dataDigest,
-              options: {
-                showEffects: true,
-                showEvents: true,
-              },
-            });
-
-            // console.log('Full transaction:', txnDetails);
-            console.log('event:', txnDetails?.events?.[0]?.parsedJson?.awards);
-
-            return txnDetails?.events?.[0]?.parsedJson?.awards
-          },
-          onError: (error) => {
-            console.error('error:', error);
           },
         }
       );
     } catch (e) {
       console.error(e);
-      return 'error'
     }
   };
 
-  const digeestt = async () => {
-    const txnDetails: any = await client.getTransactionBlock({
-      digest: 'G85yRF3SobW8G4VNuwYcfRBgdJ5vFE38egXAjnd23osV',
-      options: {
-        showEffects: true,
-        showEvents: true,
-      },
-    });
-
-    console.log('detials:', txnDetails);
-    console.log('events:', txnDetails?.events?.[0]?.parsedJson?.awards);
-  };
-
-  const returnGameState = () => {
-    console.log('status',newGameState.current)
-    switch (newGameState.current) {
+  const returnGameState = (states: string) => {
+    console.log('status', newGameState.current);
+    switch (states) {
       case 'None':
         return (
           <div className="w-20 h-20 rounded-full bg-[#2F4C3A] flex items-center justify-center text-white font-bold">
@@ -275,31 +275,49 @@ export default function Scratcher() {
 
       case 'Silver':
         return (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-[#C0C0C0] to-[#A9A9A9] flex items-center justify-center text-white font-bold">
             Silver
           </div>
         );
 
-      case 'ape':
+      case 'Gold':
         return (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-red-500 to-blue-600 flex items-center justify-center text-white font-bold">
-            Grand Prize
+          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-[#FFD700] to-[#D4AF37] flex items-center justify-center text-white font-bold">
+            Gold
           </div>
         );
     }
   };
 
   const scartch = async () => {
-    const gameState = await playSuiScratcher();
-    console.log('gameState',gameState)
-    if(gameState == undefined)return
+    const digestDigest: string = await playSuiScratcher();
 
-    newGameState.current = gameState;
-
+    await sleep(1000);
     if (!isScratchStarted) {
       setIsScratchStarted(true);
-      setTimeout(revealNumber, 1000);
+      setTimeout(revealNumber, 2000);
     }
+
+    const txnDetails: any = await client.getTransactionBlock({
+      digest: digestDigest,
+      options: {
+        showEffects: true,
+        showEvents: true,
+      },
+    });
+    
+    purchaseHistory.push({
+      id: purchaseHistory.length + 1,
+      time: getCurrentDateTime(),
+      prize: txnDetails?.events?.[0]?.parsedJson?.awards,
+      dist:digestDigest
+    });
+
+    // console.log('Full transaction:', txnDetails);
+    console.log('event:', txnDetails?.events?.[0]?.parsedJson?.awards);
+    newGameState.current = txnDetails?.events?.[0]?.parsedJson?.awards;
+
+    console.log(newGameState.current);
   };
 
   return (
@@ -436,7 +454,7 @@ export default function Scratcher() {
                         Winning result
                       </h3>
                       <div className="flex justify-center gap-3">
-                        {returnGameState(gameState)}
+                        {returnGameState(newGameState.current)}
                       </div>
                     </motion.div>
                   )}
@@ -462,7 +480,7 @@ export default function Scratcher() {
                 className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
                 onClick={digeestt}
               >
-                Test
+                Get test USDT token
               </Button>
             </div>
           </motion.div>
@@ -490,10 +508,15 @@ export default function Scratcher() {
                     <Clock className="h-5 w-5 text-gray-400 mt-1" />
                     <div className="flex-1">
                       <p className="text-sm text-gray-500">{item.time}</p>
+                      {item.prize == 'None' ? (
+                        <p className={`font-medium `}>Lose</p>
+                      ) : (
+                        <p className={`font-medium `}>Win</p>
+                      )}
                       <p
-                        className={`font-medium ${item.status === 'won' ? 'text-green-600' : 'text-gray-600'}`}
+                        className={`font-medium ${item.prize === 'won' ? 'text-green-600' : 'text-gray-600'}`}
                       >
-                        {item.result}
+                        {item.prize}
                       </p>
                     </div>
                   </div>

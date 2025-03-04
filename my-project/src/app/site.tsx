@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 
 import { useCurrentWallet } from '@mysten/dapp-kit';

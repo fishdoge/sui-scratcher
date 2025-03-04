@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getFullnodeUrl } from '@mysten/sui/client';
 import { AuthProvider } from '@/app/context/authContext';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
 
 const WalletProvider = dynamic(
   () => import('@mysten/dapp-kit').then((mod) => mod.WalletProvider),

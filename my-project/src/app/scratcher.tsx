@@ -24,7 +24,8 @@ interface historyType {
   id: number;
   time: string;
   prize: string;
-  dist:string
+  dist:string,
+  gain:string
 }
 
 // Mock purchase history data
@@ -292,6 +293,8 @@ export default function Scratcher() {
   const scartch = async () => {
     const digestDigest: string = await playSuiScratcher();
 
+    if(digestDigest=='error')return;
+
     await sleep(1000);
     if (!isScratchStarted) {
       setIsScratchStarted(true);
@@ -305,17 +308,31 @@ export default function Scratcher() {
         showEvents: true,
       },
     });
-    
+    const finalState = txnDetails?.events?.[0]?.parsedJson?.awards
+    let earn:string = '0';
+
+    if(finalState == 'None'){
+      earn = '- 500'
+    }else if(finalState == 'Bronze'){
+      earn = '+ 1000'
+    }else if(finalState == 'Silver'){
+      earn = '+ 2000'
+
+    }else if(finalState == 'Gold'){
+        earn = '+ 99999'
+    }
+
     purchaseHistory.push({
       id: purchaseHistory.length + 1,
       time: getCurrentDateTime(),
-      prize: txnDetails?.events?.[0]?.parsedJson?.awards,
-      dist:digestDigest
+      prize: finalState,
+      dist:digestDigest,
+      gain:earn
     });
 
     // console.log('Full transaction:', txnDetails);
-    console.log('event:', txnDetails?.events?.[0]?.parsedJson?.awards);
-    newGameState.current = txnDetails?.events?.[0]?.parsedJson?.awards;
+    console.log('event:', finalState);
+    newGameState.current = finalState;
 
     console.log(newGameState.current);
   };
@@ -514,9 +531,14 @@ export default function Scratcher() {
                         <p className={`font-medium `}>Win</p>
                       )}
                       <p
-                        className={`font-medium ${item.prize === 'won' ? 'text-green-600' : 'text-gray-600'}`}
+                        className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
                       >
                         {item.prize}
+                      </p>
+                      <p
+                        className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
+                      >
+                        {item.gain + " "}USDT
                       </p>
                     </div>
                   </div>

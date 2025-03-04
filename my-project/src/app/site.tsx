@@ -1,123 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import confetti from 'canvas-confetti';
-import {
-  Sparkles,
-  Trophy,
-  Users,
-  Ticket,
-  Info,
-  History,
-  Clock,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import { Sparkles } from 'lucide-react';
+
 import { useCurrentWallet } from '@mysten/dapp-kit';
 
 import Navbar from './navbar';
 import Scratcher from './scratcher';
 
 // Mock purchase history data
-const purchaseHistory = [
-  {
-    id: 1,
-    time: '2024-02-17 13:45',
-    result: 'Regular Prize (10 USDT)',
-    status: 'won',
-  },
-  { id: 2, time: '2024-02-17 13:30', result: 'No Win', status: 'lost' },
-  {
-    id: 3,
-    time: '2024-02-17 13:15',
-    result: 'Special Prize (20 USDT)',
-    status: 'won',
-  },
-  { id: 4, time: '2024-02-17 13:00', result: 'No Win', status: 'lost' },
-  { id: 5, time: '2024-02-17 12:45', result: 'No Win', status: 'lost' },
-];
 
 export default function Site() {
-  const [isRevealed, setIsRevealed] = useState(false);
-  const [isScratchStarted, setIsScratchStarted] = useState(false);
   const { connectionStatus } = useCurrentWallet();
-  const [gameState, setgameState] = useState(0);
 
   useEffect(() => {
     console.log(connectionStatus);
   }, [connectionStatus]);
-
-  const poolInfo = {
-    totalPool: 1000,
-    ticketsSold: 156,
-    activeUsers: 45,
-    jackpotHolders: 2,
-  };
-
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
-  };
-
-  const revealNumber = () => {
-    setIsRevealed(true);
-    triggerConfetti();
-  };
-
-  const playScratcr = (): number => {
-    const number = Math.floor(Math.random() * 4) + 1;
-
-    return number;
-  };
-
-  const returnGameState = (status: number) => {
-    switch (status) {
-      case 1:
-        return (
-          <div className="w-20 h-20 rounded-full bg-[#2F4C3A] flex items-center justify-center text-white font-bold">
-            You Lose
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 flex items-center justify-center text-white font-bold">
-            Grand Prize
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold">
-            Second Prize
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-red-500 to-blue-600 flex items-center justify-center text-white font-bold">
-            Grand Prize
-          </div>
-        );
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-blue-50">
       {/* Navbar */}
       <Navbar />
 
-      <Scratcher/>
-    
+      <Scratcher />
 
       {/* Footer */}
       <footer className="bg-white/70 backdrop-blur-md border-t">

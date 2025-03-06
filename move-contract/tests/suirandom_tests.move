@@ -2,44 +2,47 @@
 #[test_only, allow(deprecated_usage)]
 module suirandom::suirandom_tests;
 
-use suirandom::suirandom;
-use std::string;
+use std::{
+    debug
+};
+use suirandom::suirandom::{
+    Self,
+    WinnerEvent
+};
 use sui::{
     random::{Self, Random}, 
-    test_scenario as ts,
-    coin::{Self, CoinMetadata},
+    test_scenario::{Self as ts, Scenario},
+    coin::{Self, TreasuryCap, CoinMetadata},
     url,
+    event,
     test_utils::create_one_time_witness,
-    test_utils::destroy
-    };
+    test_utils::destroy,
+    test_utils::assert_eq
+};
 
+// 測試幣OTW
 public struct SUIRANDOM_TESTS has drop {}
+// 隨機數種子
+const RANDOM_SEED: vector<u8> = x"1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F";
+// 獎金池初始深度 = 價格 ＊ Deposit Deep
+const Deposit_Deep:u64 = 20;
 
 #[test]
 fun test_e2e() {
-    
     let user0 = @0x0;
     let user1 = @0x1;
     let mut ts = ts::begin(user0);
     // Setup CoinMeta
     // let meta = coin::create_treasury_cap_for_testing<COIN_TESTS>(ts.ctx());
     let otw = create_one_time_witness<SUIRANDOM_TESTS>();
-    let (_treasury, mut meta) = coin::create_currency(
-		otw,
-		6,
-		b"COIN_TESTS",
-		b"coin_name",
-		b"description",
-		option::some(url::new_unsafe_from_bytes(b"icon_url")),
-		ts.ctx()
-	);
+    let (_treasury, meta) = test_env(otw, &mut ts);
     // Setup randomness
     random::create_for_testing(ts.ctx());
     ts.next_tx(user0);
     let mut random_state: Random = ts.take_shared();
     random_state.update_randomness_state_for_testing(
         0,
-        x"1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F",
+        RANDOM_SEED,
         ts.ctx(),
     );
     
@@ -56,11 +59,13 @@ fun test_e2e() {
     // set_price
     ts.next_tx(user1);
     let mut shop: suirandom::Game_Shop<SUIRANDOM_TESTS> = ts.take_shared();
-    cap.set_price<SUIRANDOM_TESTS>(&mut shop, 5_000_000);
+    //cap.set_price<SUIRANDOM_TESTS>(&mut shop, 5_000_000);
+
+    debug::print(&shop.shop_price());
 
     // deposit_reward_pool
     ts.next_tx(user1);
-    let c = coin::mint_for_testing<SUIRANDOM_TESTS>(100_000_000/*shop.shop_price()*100*/,ts.ctx());
+    let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop.shop_price() * Deposit_Deep ,ts.ctx());
     cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop);
 
     // start_new_collect_book
@@ -78,8 +83,10 @@ fun test_e2e() {
         &random_state,
         ts.ctx()
         );
-    
-
+    //
+    debug::print(&event::events_by_type<WinnerEvent>().length());
+    debug::print(&event::events_by_type<WinnerEvent>()[0].seed());
+    assert_eq(event::events_by_type<WinnerEvent>().length(),shop.shop_count());
 
     
     /*
@@ -115,5 +122,70 @@ fun test_e2e() {
     ts::return_shared(shop);
     ts::return_shared(random_state);
     ts.end();
+}
+
+#[test]
+fun test_shuffle() {
+    let mut scenario = ts::begin(@0x0);
+
+    random::create_for_testing(scenario.ctx());
+    scenario.next_tx(@0x0);
+
+    let mut random_state = scenario.take_shared<Random>();
+    random_state.update_randomness_state_for_testing(
+        0,
+        RANDOM_SEED,
+        scenario.ctx(),
+    );
+
+    let mut gen = random_state.new_generator(scenario.ctx());
+    let mut v: vector<u16> = vector[0, 1, 2, 3, 4];
+    gen.shuffle(&mut v);
+    assert!(v.length() == 5);
+    let mut i: u16 = 0;
+    while (i < 5) {
+        assert!(v.contains(&i));
+        i = i + 1;
+    };
+    debug::print(&v);
+
+    // check that numbers indeed eventaually move to all positions
+    loop {
+        gen.shuffle(&mut v);
+        if ((v[4] == 1u16)) break;
+    };
+    loop {
+        gen.shuffle(&mut v);
+        if ((v[0] == 2u16)) break;
+    };
+
+    let mut v: vector<u32> = vector[];
+    gen.shuffle(&mut v);
+    assert!(v.length() == 0);
+
+    let mut v: vector<u32> = vector[321];
+    gen.shuffle(&mut v);
+    assert!(v.length() == 1);
+    assert!(v[0] == 321u32);
+
+    ts::return_shared(random_state);
+    scenario.end();
+}
+
+
+// 輪子
+// 創建SUIRANDOM貨幣
+#[test_only]
+fun test_env(otw:SUIRANDOM_TESTS, ts:&mut Scenario): (TreasuryCap<SUIRANDOM_TESTS>, CoinMetadata<SUIRANDOM_TESTS>) {
+    let (treasury, meta) = coin::create_currency(
+        otw,
+        6,
+        b"COIN_TESTS",
+        b"coin_name",
+        b"description",
+        option::some(url::new_unsafe_from_bytes(b"icon_url")),
+        ts.ctx()
+    );
+    (treasury, meta)
 }
 

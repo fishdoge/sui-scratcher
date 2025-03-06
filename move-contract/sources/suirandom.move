@@ -14,10 +14,11 @@ use sui::{
         event,
     };
 
-const EInvalidContinue: u64 = 0;
-const EInvalidBalance: u64 = 1;
-const EInvalidQualifications: u64 = 2;
-const EInvalidOldCollectBook: u64 = 3;
+const EInvalidErrorPool: u64 = 0;
+const EInvalidContinue: u64 = 1;
+const EInvalidBalance: u64 = 2;
+const EInvalidQualifications: u64 = 3;
+const EInvalidOldCollectBook: u64 = 4;
 
 // Send Message With Player Get Result Each Time.
 public struct WinnerEvent has copy, drop {
@@ -26,7 +27,7 @@ public struct WinnerEvent has copy, drop {
     // The creator of the NFT
     winner: address,
     // The name of the NFT
-    seed_number: u8,
+    seed_number: u64,
 }
 
 // Admin CAP
@@ -62,6 +63,7 @@ public struct Collect_Book has key {
     gold: u64,
     silver: u64,
     bronze: u64,
+    pool: ID,
     epoch: u64,
 }
 
@@ -86,9 +88,9 @@ entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut 
         Game_Shop {
             id: object::new(ctx),
             timestamp: ctx.epoch_timestamp_ms(),
-            epoch: ctx.epoch(),
+            epoch: 1,
             reward_pool: balance::zero<T>(),
-            price: 5,
+            price: price,
             count: 0,
             continue_set: true,
         }
@@ -96,6 +98,7 @@ entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut 
 }
 
 entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &mut Game_Shop<T>, r: &Random, ctx: &mut TxContext) {
+    assert!(object::id(shop) == collect_book.pool, EInvalidErrorPool);
     assert!(shop.continue_set == true, EInvalidContinue);
     assert!(coin.value() >= shop.price, EInvalidBalance);
     assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
@@ -108,7 +111,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
     transfer::public_transfer(coin, ctx.sender());
 
     let mut generator = new_generator(r, ctx);
-    let random_value = generator.generate_u8_in_range(1, 200);
+    let random_value = generator.generate_u64_in_range(1, 200);
 
     // 200 - 43 + 14 * 2 + 6 * 2 + 1 * 2 + 0.5 * 2 = 200
     // 0 < 78.5 < 92.5 < 98.5 < 99.5 < 100
@@ -177,8 +180,11 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 }
 
 entry fun winner_take_award<T> (collect_book: Collect_Book, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
-    assert!(shop.continue_set == false, EInvalidContinue);
+    assert!(object::id(shop) == collect_book.pool, EInvalidErrorPool);
+    assert!(shop.continue_set == true, EInvalidContinue);
     assert!(collect_book.gold < 1, EInvalidQualifications);
+    assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
+    
     // Shutdown Game
     shop.continue_set = false;
     // Avoid double borrow
@@ -239,6 +245,7 @@ entry fun start_new_collect_book<T> (shop: &Game_Shop<T>, ctx: &mut TxContext) {
             gold: 0,
             silver: 0,
             bronze: 0,
+            pool: object::id(shop),
             epoch: shop.epoch,
         },
         ctx.sender()
@@ -266,10 +273,12 @@ public fun destroy_cap(cap: AdminCapability) {
 public fun destroy_collect_book(cap: Collect_Book) {
     let Collect_Book { 
         id,
-        gold,
-        silver,
-        bronze,
-        epoch} = cap;
+        gold: _,
+        silver: _,
+        bronze: _,
+        pool:_,
+        epoch:_,
+        } = cap;
     object::delete(id)
 }
 
@@ -284,4 +293,14 @@ public fun test_init(ctx: &mut TxContext) {
 #[test_only]
 public fun shop_price<T>(shop: &Game_Shop<T>): u64 {
     shop.price
+}
+
+#[test_only]
+public fun shop_count<T>(shop: &Game_Shop<T>): u64 {
+    shop.count
+}
+
+#[test_only]
+public fun seed(e: &WinnerEvent): u64 {
+    e.seed_number
 }

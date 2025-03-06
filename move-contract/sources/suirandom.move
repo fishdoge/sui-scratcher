@@ -7,6 +7,7 @@
 module suirandom::suirandom;
 
 use std::string;
+use std::debug;
 use sui::{
         random::{Random, new_generator},
         balance::{Self, Balance},
@@ -80,10 +81,11 @@ entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut 
     // Initial Shop
     let mut decimals = meta.get_decimals();
     let mut price = 5;
-    while(decimals==0){
+    while(decimals!=0){
         price = price*10;
         decimals = decimals - 1;
     };
+
     transfer::share_object(
         Game_Shop {
             id: object::new(ctx),

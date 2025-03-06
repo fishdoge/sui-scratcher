@@ -60,6 +60,7 @@ fun test_e2e() {
     ts.next_tx(user1);
     let mut shop: suirandom::Game_Shop<SUIRANDOM_TESTS> = ts.take_shared();
     //cap.set_price<SUIRANDOM_TESTS>(&mut shop, 5_000_000);
+
     debug::print(&shop.shop_price());
 
     // deposit_reward_pool

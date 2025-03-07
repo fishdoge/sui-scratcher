@@ -80,7 +80,7 @@ entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut 
     // Initial Shop
     let mut decimals = meta.get_decimals();
     let mut price = 5;
-    while(decimals==0){
+    while(decimals!=0){
         price = price*10;
         decimals = decimals - 1;
     };

@@ -3,7 +3,8 @@
 module suirandom::suirandom_tests;
 
 use std::{
-    debug
+    debug,
+    string
 };
 use suirandom::suirandom::{
     Self,
@@ -28,7 +29,7 @@ const RANDOM_SEED: vector<u8> = x"1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F1F
 const Deposit_Deep:u64 = 20;
 
 #[test]
-fun test_e2e() {
+fun test_shop_create_flow() {
     let user0 = @0x0;
     let user1 = @0x1;
     let mut ts = ts::begin(user0);
@@ -120,6 +121,137 @@ fun test_e2e() {
     destroy(meta);
     destroy(_treasury);
     ts::return_shared(shop);
+    ts::return_shared(random_state);
+    ts.end();
+}
+
+#[test]
+fun test_cross_shop_get_reward() {
+    let user0 = @0x0;
+    let user1 = @0x1;
+    let mut ts = ts::begin(user0);
+    // Setup CoinMeta
+    let otw = create_one_time_witness<SUIRANDOM_TESTS>();
+    let (_treasury, meta) = test_env(otw, &mut ts);
+    // Setup randomness
+    random::create_for_testing(ts.ctx());
+    ts.next_tx(user0);
+    let mut random_state: Random = ts.take_shared();
+    random_state.update_randomness_state_for_testing(
+        0,
+        RANDOM_SEED,
+        ts.ctx(),
+    );
+    
+    // init Scratch package
+    ts.next_tx(user1);
+    suirandom::test_init(ts.ctx());
+
+    // create shop 1
+    ts.next_tx(user1);
+    let cap: suirandom::AdminCapability = ts.take_from_sender();
+    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
+
+    // create shop 2
+    ts.next_tx(user1);
+    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
+
+    // set_price
+    ts.next_tx(user1);
+    let mut shop1: suirandom::Game_Shop<SUIRANDOM_TESTS> = ts.take_shared();
+    cap.set_price<SUIRANDOM_TESTS>(&mut shop1, 3_000_000);
+    // get price of shop 1. 
+    ts.next_tx(user1);
+    debug::print(&shop1.shop_price());
+
+    // get price of shop 2. 
+    ts.next_tx(user1);
+    let mut shop2: suirandom::Game_Shop<SUIRANDOM_TESTS> = ts.take_shared();
+    debug::print(&shop2.shop_price());
+
+    // deposit_reward_pool
+    ts.next_tx(user1);
+    let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop1.shop_price() * Deposit_Deep ,ts.ctx());
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop1);
+    ts.next_tx(user1);
+    let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop2.shop_price() * Deposit_Deep ,ts.ctx());
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop2);
+
+    // start_new_collect_book -> shop1
+    ts.next_tx(user1);
+    suirandom::start_new_collect_book<SUIRANDOM_TESTS>(&shop1, ts.ctx());
+    // packup
+    ts.next_tx(user1);
+    let mut collectbook1 : suirandom::Collect_Book = ts.take_from_sender();
+    let c2 = coin::mint_for_testing<SUIRANDOM_TESTS>(100_000_000/*shop.shop_price()*2*/,ts.ctx());
+    suirandom::packup<SUIRANDOM_TESTS>(
+        &mut collectbook1, 
+        c2, 
+        &mut shop1,
+        &random_state,
+        ts.ctx()
+        );
+    // Debug Message
+    debug::print(&string::utf8(b"shop1 data"));
+    debug::print(&event::events_by_type<WinnerEvent>().length());
+    debug::print(&event::events_by_type<WinnerEvent>()[0].seed());
+    assert_eq(event::events_by_type<WinnerEvent>().length(),shop1.shop_count());
+
+
+    // start_new_collect_book -> shop2
+    ts.next_tx(user1);
+    suirandom::start_new_collect_book<SUIRANDOM_TESTS>(&shop2, ts.ctx());
+    // packup
+    ts.next_tx(user1);
+    let mut collectbook2 : suirandom::Collect_Book = ts.take_from_sender();
+    let c2 = coin::mint_for_testing<SUIRANDOM_TESTS>(100_000_000/*shop.shop_price()*2*/,ts.ctx());
+    suirandom::packup<SUIRANDOM_TESTS>(
+        &mut collectbook2, 
+        c2, 
+        &mut shop2,
+        &random_state,
+        ts.ctx()
+        );
+    // Debug Message
+    debug::print(&string::utf8(b"shop1 data"));
+    debug::print(&event::events_by_type<WinnerEvent>().length());
+    debug::print(&event::events_by_type<WinnerEvent>()[0].seed());
+    assert_eq(event::events_by_type<WinnerEvent>().length(),shop2.shop_count());
+
+    
+    /*
+    let mut nfts = cap.mint(20, ts.ctx());
+    let mut seen_gold = false;
+    let mut seen_silver = false;
+    let mut seen_bronze = false;
+    let mut i = 0;
+    while (i < 20) {
+        if (i % 2 == 1) {
+            nfts.pop_back().reveal(&random_state, ts.ctx())
+        } else {
+            nfts.pop_back().reveal_alternative1(&random_state, ts.ctx())
+        };
+
+        ts.next_tx(user1);
+        let nft: suirandom::MetalNFT = ts.take_from_sender();
+        let metal = nft.metal_string();
+        seen_gold = seen_gold || metal == string::utf8(b"Gold");
+        seen_silver = seen_silver || metal == string::utf8(b"Silver");
+        seen_bronze = seen_bronze || metal == string::utf8(b"Bronze");
+        ts.return_to_sender(nft);
+        i = i + 1;
+    };
+
+    assert!(seen_gold && seen_silver && seen_bronze, 1);
+
+    nfts.destroy_empty();*/
+    collectbook1.destroy_collect_book();
+    collectbook2.destroy_collect_book();
+    cap.destroy_cap();
+    destroy(meta);
+    destroy(_treasury);
+    ts::return_shared(shop1);
+    ts::return_shared(shop2);
     ts::return_shared(random_state);
     ts.end();
 }

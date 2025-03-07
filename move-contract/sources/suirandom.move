@@ -270,16 +270,9 @@ public fun destroy_cap(cap: AdminCapability) {
 }
 
 #[test_only]
-public fun destroy_collect_book(cap: Collect_Book) {
-    let Collect_Book { 
-        id,
-        gold: _,
-        silver: _,
-        bronze: _,
-        pool:_,
-        epoch:_,
-        } = cap;
-    object::delete(id)
+public fun gift_collect_book_biggest_reward (mut cap: Collect_Book): Collect_Book {
+    cap.gold = cap.gold + 1;
+    cap
 }
 
 #[test_only]

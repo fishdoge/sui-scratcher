@@ -116,7 +116,7 @@ fun test_shop_create_flow() {
     assert!(seen_gold && seen_silver && seen_bronze, 1);
 
     nfts.destroy_empty();*/
-    collectbook.destroy_collect_book();
+    destroy(collectbook);
     cap.destroy_cap();
     destroy(meta);
     destroy(_treasury);
@@ -183,7 +183,7 @@ fun test_cross_shop_get_reward() {
     // packup
     ts.next_tx(user1);
     let mut collectbook1 : suirandom::Collect_Book = ts.take_from_sender();
-    let c2 = coin::mint_for_testing<SUIRANDOM_TESTS>(100_000_000/*shop.shop_price()*2*/,ts.ctx());
+    let c2 = coin::mint_for_testing<SUIRANDOM_TESTS>(shop1.shop_price()*20,ts.ctx());
     suirandom::packup<SUIRANDOM_TESTS>(
         &mut collectbook1, 
         c2, 
@@ -204,7 +204,7 @@ fun test_cross_shop_get_reward() {
     // packup
     ts.next_tx(user1);
     let mut collectbook2 : suirandom::Collect_Book = ts.take_from_sender();
-    let c2 = coin::mint_for_testing<SUIRANDOM_TESTS>(100_000_000/*shop.shop_price()*2*/,ts.ctx());
+    let c2 = coin::mint_for_testing<SUIRANDOM_TESTS>(shop2.shop_price()*20,ts.ctx());
     suirandom::packup<SUIRANDOM_TESTS>(
         &mut collectbook2, 
         c2, 
@@ -213,41 +213,20 @@ fun test_cross_shop_get_reward() {
         ts.ctx()
         );
     // Debug Message
-    debug::print(&string::utf8(b"shop1 data"));
+    debug::print(&string::utf8(b"shop2 data"));
     debug::print(&event::events_by_type<WinnerEvent>().length());
     debug::print(&event::events_by_type<WinnerEvent>()[0].seed());
     assert_eq(event::events_by_type<WinnerEvent>().length(),shop2.shop_count());
 
+    // Gift Biggest Reward
+    collectbook1 = collectbook1.gift_collect_book_biggest_reward();
+    collectbook2 = collectbook2.gift_collect_book_biggest_reward();
+
     
-    /*
-    let mut nfts = cap.mint(20, ts.ctx());
-    let mut seen_gold = false;
-    let mut seen_silver = false;
-    let mut seen_bronze = false;
-    let mut i = 0;
-    while (i < 20) {
-        if (i % 2 == 1) {
-            nfts.pop_back().reveal(&random_state, ts.ctx())
-        } else {
-            nfts.pop_back().reveal_alternative1(&random_state, ts.ctx())
-        };
-
-        ts.next_tx(user1);
-        let nft: suirandom::MetalNFT = ts.take_from_sender();
-        let metal = nft.metal_string();
-        seen_gold = seen_gold || metal == string::utf8(b"Gold");
-        seen_silver = seen_silver || metal == string::utf8(b"Silver");
-        seen_bronze = seen_bronze || metal == string::utf8(b"Bronze");
-        ts.return_to_sender(nft);
-        i = i + 1;
-    };
-
-    assert!(seen_gold && seen_silver && seen_bronze, 1);
-
-    nfts.destroy_empty();*/
-    collectbook1.destroy_collect_book();
-    collectbook2.destroy_collect_book();
-    cap.destroy_cap();
+    // Destroy Or Return Object.
+    destroy(collectbook1);
+    destroy(collectbook2);
+    destroy(cap);
     destroy(meta);
     destroy(_treasury);
     ts::return_shared(shop1);

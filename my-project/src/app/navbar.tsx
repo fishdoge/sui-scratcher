@@ -21,6 +21,7 @@ import {
   useSuiClientContext,
 } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
+import { scratcherShop, suiPackage, scratcherCollectBook } from '@/chainConfig';
 
 type userObject = {
   collectBook: string | undefined;
@@ -79,17 +80,13 @@ export default function Navbar() {
       const coinBalance = await client.getBalance({
         owner:
           '0xe67ebf92a256811389e642038ad7e56a887e627a2399e634e277eadf0911e4a9',
-        coinType:
-          '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book',
+        coinType: `0x2782e601cfb23063db01f50ce1ad70236c96623eb4298676ed2bf9fd1a5dbbf1::suirandom::Collect_Book`,
       });
 
       let colloctBook;
 
       userObjects.data.map((index) => {
-        if (
-          index.data?.type ===
-          '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book'
-        ) {
+        if (index.data?.type === scratcherCollectBook) {
           colloctBook = index.data.objectId;
         }
       });
@@ -109,34 +106,27 @@ export default function Navbar() {
       console.log('playObject', data);
     };
     getUserObjectLog();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionStatus]);
 
   useEffect(() => {
     console.log(connectionStatus);
     console.log('account', account?.address);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionStatus]);
-
- 
 
   const getGameTicket = async () => {
     console.log('excute');
 
     const ticketTx = new Transaction();
     //const [SUI] = ticketTx.splitCoins(ticketTx.gas, [1_000_000]);
-
+    console.log(`${suiPackage}::suirandom::start_new_collect_book`);
     ticketTx.moveCall({
-      target:
-        '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::start_new_collect_book',
+      target: `${suiPackage}::suirandom::start_new_collect_book`,
       typeArguments: [
         '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
       ],
-      arguments: [
-        ticketTx.object(
-          '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
-        ),
-      ],
+      arguments: [ticketTx.object(scratcherShop)],
     });
 
     try {
@@ -157,7 +147,6 @@ export default function Navbar() {
     }
   };
 
-  
   const sendTransaction = async () => {
     const tx1 = new Transaction();
     const [coin1] = tx1.splitCoins(tx1.gas, [100000]);
@@ -173,7 +162,7 @@ export default function Navbar() {
           chain: 'sui:testnet',
         },
         {
-         //@typescript-eslint/no-explicit-any
+          //@typescript-eslint/no-explicit-any
           onSuccess: (result: any) => {
             console.log('executed transaction', result);
             setDigest(result.digest);
@@ -236,7 +225,6 @@ export default function Navbar() {
               <>
                 <div>Address : {account?.address.substring(0, 9)}</div>
                 <Button onClick={getGameTicket}>Get tickets</Button>
-                
               </>
             ) : (
               <div>wallet not connect</div>

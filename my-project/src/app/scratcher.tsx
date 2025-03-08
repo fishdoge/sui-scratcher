@@ -2,9 +2,18 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import PoolPrize from '@/app/poolPrize';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Trophy, Users, Ticket, Info, History, Clock } from 'lucide-react';
+import {
+  Trophy,
+  Users,
+  Ticket,
+  Info,
+  History,
+  Clock,
+  // BadgeDollarSign,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Accordion,
@@ -19,12 +28,19 @@ import {
 } from '@mysten/dapp-kit';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
+import {
+  suiPackage,
+  usdtArgs,
+  usdtTestPackage,
+  scratcherShop,
+  scratcherCollectBook,
+} from '@/chainConfig';
 
 interface historyType {
   id: number;
   time: string;
   prize: string;
-  dist:string
+  dist: string;
 }
 
 // Mock purchase history data
@@ -83,10 +99,7 @@ export default function Scratcher() {
       let colloctBook;
 
       userObjects.data.map((index) => {
-        if (
-          index.data?.type ===
-          '0xf47f765b2ceca6a00f327e4465181d25d525a7cfdcbebacacf59902154fe75b6::suirandom::Collect_Book'
-        ) {
+        if (index.data?.type === scratcherCollectBook) {
           colloctBook = index.data.objectId;
         }
       });
@@ -106,7 +119,7 @@ export default function Scratcher() {
       console.log('playObject', data);
     };
     getUserObjectLog();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionStatus]);
 
   const poolInfo = {
@@ -129,42 +142,42 @@ export default function Scratcher() {
     triggerConfetti();
   };
 
-//   const getGameTicket = async () => {
-//     console.log('excute');
+  //   const getGameTicket = async () => {
+  //     console.log('excute');
 
-//     const ticketTx = new Transaction();
-//     //const [SUI] = ticketTx.splitCoins(ticketTx.gas, [1_000_000]);
+  //     const ticketTx = new Transaction();
+  //     //const [SUI] = ticketTx.splitCoins(ticketTx.gas, [1_000_000]);
 
-//     ticketTx.moveCall({
-//       target:
-//         '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::start_new_collect_book',
-//       typeArguments: [
-//         '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
-//       ],
-//       arguments: [
-//         ticketTx.object(
-//           '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
-//         ),
-//       ],
-//     });
+  //     ticketTx.moveCall({
+  //       target:
+  //         '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::start_new_collect_book',
+  //       typeArguments: [
+  //         '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
+  //       ],
+  //       arguments: [
+  //         ticketTx.object(
+  //           '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
+  //         ),
+  //       ],
+  //     });
 
-//     try {
-//       await mutateAsync(
-//         {
-//           transaction: ticketTx,
-//           chain: 'sui:testnet',
-//         },
-//         {
-//           onSuccess: (result: any) => {
-//             console.log('executed transaction', result);
-//             setDigest(result?.digest);
-//           },
-//         }
-//       );
-//     } catch (e) {
-//       console.error(e);
-//     }
-//   };
+  //     try {
+  //       await mutateAsync(
+  //         {
+  //           transaction: ticketTx,
+  //           chain: 'sui:testnet',
+  //         },
+  //         {
+  //           onSuccess: (result: any) => {
+  //             console.log('executed transaction', result);
+  //             setDigest(result?.digest);
+  //           },
+  //         }
+  //       );
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   };
 
   function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -180,17 +193,12 @@ export default function Scratcher() {
     }
 
     ticketTx.moveCall({
-      target:
-        '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::packup',
-      typeArguments: [
-        '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
-      ],
+      target: `${suiPackage}::suirandom::packup`,
+      typeArguments: [usdtArgs],
       arguments: [
         ticketTx.object(userOwnObjects.collectBook),
         ticketTx.object(userOwnObjects.usdTokenObject),
-        ticketTx.object(
-          '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
-        ),
+        ticketTx.object(scratcherShop),
         ticketTx.object('0x8'),
       ],
     });
@@ -229,8 +237,7 @@ export default function Scratcher() {
     const ticketTxse = new Transaction();
 
     ticketTxse.moveCall({
-      target:
-        '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::faucet',
+      target: `${usdtTestPackage}::usdt::faucet`,
       arguments: [
         ticketTxse.object(
           '0xf0a1515e4ab64b7fa3252d659e0b21c8152c451e4a61309690859c59fcba8fb3'
@@ -305,12 +312,12 @@ export default function Scratcher() {
         showEvents: true,
       },
     });
-    
+
     purchaseHistory.push({
       id: purchaseHistory.length + 1,
       time: getCurrentDateTime(),
       prize: txnDetails?.events?.[0]?.parsedJson?.awards,
-      dist:digestDigest
+      dist: digestDigest,
     });
 
     // console.log('Full transaction:', txnDetails);
@@ -404,8 +411,11 @@ export default function Scratcher() {
         </motion.div>
       </div>
 
+      {/* pool info */}
+      <PoolPrize />
+
       {/* Lottery Section with History */}
-      <div className="max-w-6xl mx-auto mb-12">
+      <div className="max-w-6xl mx-auto mb-12 mt-[60px]">
         <div className="grid md:grid-cols-2 gap-8">
           {/* Lottery Card */}
           <motion.div
@@ -514,7 +524,7 @@ export default function Scratcher() {
                         <p className={`font-medium `}>Win</p>
                       )}
                       <p
-                        className={`font-medium ${item.prize === 'won' ? 'text-green-600' : 'text-gray-600'}`}
+                        className={`font-sm ${item.prize === 'won' ? 'text-green-600' : 'text-gray-600'}`}
                       >
                         {item.prize}
                       </p>

@@ -443,12 +443,10 @@ export default function Scratcher() {
           >
             <div className="p-8">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                  Prize Pool
+                <h2 className="text-3xl font-semibold text-gray-800 mb-2">
+                Scratcher
                 </h2>
-                <p className="text-4xl font-bold text-purple-600">
-                  {poolInfo.totalPool} USDT
-                </p>
+
               </div>
 
               {/* Scratch Area */}

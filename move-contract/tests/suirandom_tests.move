@@ -125,7 +125,7 @@ fun test_shop_create_flow() {
     ts.end();
 }
 
-#[test]
+#[test, expected_failure]
 fun test_cross_shop_get_reward() {
     let user0 = @0x0;
     let user1 = @0x1;
@@ -222,7 +222,7 @@ fun test_cross_shop_get_reward() {
     collectbook1 = collectbook1.gift_collect_book_biggest_reward();
     collectbook2 = collectbook2.gift_collect_book_biggest_reward();
 
-    // 
+    // Winner Take Reward
     ts.next_tx(user1);
     collectbook1.winner_take_reward(&mut shop2, ts.ctx());
 

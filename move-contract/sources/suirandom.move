@@ -185,8 +185,6 @@ entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Gam
     assert!(collect_book.gold >= 1, EInvalidQualifications);
     assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
     
-    // Shutdown Game
-    shop.continue_set = false;
     // Avoid double borrow
     let reward_value = shop.reward_pool.value();
     transfer::public_transfer(

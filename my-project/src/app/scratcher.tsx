@@ -319,11 +319,11 @@ export default function Scratcher() {
     let earn:string = '0';
 
     if(finalState == 'None'){
-      earn = '- 500'
+      earn = '- 5'
     }else if(finalState == 'Bronze'){
-      earn = '+ 1000'
+      earn = '+ 10'
     }else if(finalState == 'Silver'){
-      earn = '+ 2000'
+      earn = '+ 20'
 
     }else if(finalState == 'Gold'){
         earn = '+ 99999'

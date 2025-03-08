@@ -1,49 +1,38 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useEffect } from 'react';
-import { SuiGraphQLClient } from '@mysten/sui/graphql';
-import { graphql } from '@mysten/sui/graphql/schemas/latest';
-
+import { useEffect,useState } from 'react';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+const client = new SuiClient({
+  url: getFullnodeUrl('testnet'),
+});
 export default function PoolPrize() {
+
+  const [poolUSDTBalance,setPoolUSDTBalance] = useState(0)
+
   useEffect(() => {
-    const gqlClient = new SuiGraphQLClient({
-      url: 'https://sui-testnet.mystenlabs.com/graphql',
-    });
 
-    const coinIdentifierQuery = graphql(`
-      query getCoins(
-        $owner: SuiAddress!
-        $first: Int
-        $cursor: String
-        $type: String = "0x2::sui::SUI"
-      ) {
-        address(address: $owner) {
-          coins(first: $first, after: $cursor, type: $type) {
-            nodes {
-              contents {
-                json
-              }
-            }
-          }
-        }
-      }
-    `);
-
-    async function getCoinIdentifier() {
-      const result = await gqlClient.query({
-        query: coinIdentifierQuery,
-        variables: {
-          owner:
-            '0x25e6a21d3c032479b67448c44f817217791da22d12f4539264df2c884ac4301e',
-          type: '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
-        },
+    async function getContractObjectUSDT() {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const txn:any = await client.getObject({
+        id: '0x132931c191c82182b50f0d1d2de7073dbaf8f9a234d06d3c07ad3e90a6b06b2f',
+        // fetch the object content field
+        options: { showContent: true },
       });
-      console.log('result',result);
-      //return result.data?.address?.coins?.nodes;
+
+      const data = txn.data?.content?.fields?.reward_pool / 1000000
+      const clearfyData = parseInt(data.toString());
+
+      console.log('reward_pool',clearfyData)
+
+      setPoolUSDTBalance(clearfyData)
     }
 
-    getCoinIdentifier()
+    getContractObjectUSDT()
+
+
+
+    //getCoinIdentifier()
   });
 
   return (
@@ -64,7 +53,7 @@ export default function PoolPrize() {
                 Prize Pool
               </div>
             </div>
-            <p className="text-3xl font-bold text-purple-600">USDT</p>
+            <p className="text-3xl font-bold text-purple-600">{poolUSDTBalance + " "}USDT</p>
           </div>
 
           {/* Scratch Area */}

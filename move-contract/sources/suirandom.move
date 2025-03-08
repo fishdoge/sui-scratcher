@@ -179,10 +179,10 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 
 }
 
-entry fun winner_take_award<T> (collect_book: Collect_Book, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
+entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
     assert!(object::id(shop) == collect_book.pool, EInvalidErrorPool);
     assert!(shop.continue_set == true, EInvalidContinue);
-    assert!(collect_book.gold < 1, EInvalidQualifications);
+    assert!(collect_book.gold >= 1, EInvalidQualifications);
     assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
     
     // Shutdown Game
@@ -193,8 +193,11 @@ entry fun winner_take_award<T> (collect_book: Collect_Book, shop: &mut Game_Shop
         coin::from_balance(shop.reward_pool.split(reward_value * 7 / 10), ctx),
         ctx.sender(),
     );
-    // Return Collect Book
-    transfer::transfer(collect_book, ctx.sender());
+    // Refresh Collect Book
+    collect_book.gold= 0;
+    collect_book.silver= 0;
+    collect_book.bronze= 0;
+    collect_book.epoch= shop.epoch + 1;
 }
 
 entry fun deposit_reward_pool<T> (_: &AdminCapability, coin: Coin<T>, shop: &mut Game_Shop<T>) {
@@ -213,19 +216,37 @@ entry fun set_price<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, price: u64
 }
 
 // Restart shop in different scenario
-entry fun start_epoch_when_gold_redeem<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &TxContext) {
+entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, winner: address, ctx: &mut TxContext) {
+    assert!(shop.continue_set == false, EInvalidContinue);
+    
+    // Avoid double borrow
+    let reward_value = shop.reward_pool.value();
+    let winner_reward = reward_value * 7 / 10;
+    let project_reward = reward_value / 10;
+
+    // Winner Reward
+    transfer::public_transfer(
+        coin::from_balance(shop.reward_pool.split(winner_reward), ctx),
+        winner,
+    );
+
+    // Project Reward
+    transfer::public_transfer(
+        coin::from_balance(shop.reward_pool.split(project_reward), ctx),
+        ctx.sender(),
+    );
     shop.count = 0;
     shop.timestamp = ctx.epoch_timestamp_ms();
     shop.epoch = shop.epoch + 1;
     shop.continue_set = true;
 }
 
-entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &TxContext) {
-    shop.count = 0;
-    shop.timestamp = ctx.epoch_timestamp_ms();
-    shop.epoch = shop.epoch + 1;
-    shop.continue_set = true;
-}
+// entry fun start_epoch_when_gold_redeem<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &TxContext) {
+//     shop.count = 0;
+//     shop.timestamp = ctx.epoch_timestamp_ms();
+//     shop.epoch = shop.epoch + 1;
+//     shop.continue_set = true;
+// }
 
 // Freeze Operator
 entry fun unfreeze_start_epoch<T> (_: &AdminCapability, shop: &mut Game_Shop<T>) {
@@ -270,9 +291,9 @@ public fun destroy_cap(cap: AdminCapability) {
 }
 
 #[test_only]
-public fun gift_collect_book_biggest_reward (mut cap: Collect_Book): Collect_Book {
-    cap.gold = cap.gold + 1;
-    cap
+public fun gift_collect_book_biggest_reward (mut collectbook: Collect_Book): Collect_Book {
+    collectbook.gold = collectbook.gold + 1;
+    collectbook
 }
 
 #[test_only]
@@ -296,4 +317,9 @@ public fun shop_count<T>(shop: &Game_Shop<T>): u64 {
 #[test_only]
 public fun seed(e: &WinnerEvent): u64 {
     e.seed_number
+}
+
+#[test_only]
+public fun gold(ck: &Collect_Book): u64 {
+    ck.gold
 }

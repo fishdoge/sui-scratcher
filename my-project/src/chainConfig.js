@@ -1,5 +1,5 @@
 export const suiPackage =
-  '0xbd1d80fb7111802729e691cf15b40d3040b446605e18fa86f1ff5d61d679edb0';
+  '0x41bc13fc04b2d1bac01bc90e919df619eb24cfde379762613d0387c1b128b1cc';
 export const usdtTestPackage =
   '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96';
 export const usdtArgs =

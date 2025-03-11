@@ -91,19 +91,12 @@ export default function Navbar() {
         }
       });
 
-      console.log('objects', biggestObject);
-      console.log('coinValue', coinValue);
-      console.log('colloctBookObject', colloctBook);
-      //console.log('coinBalance',coinBalance)
-
       const data = {
         collectBook: colloctBook,
         usdTokenObject: biggestObject,
       };
 
       setUserObjects(data);
-
-      console.log('playObject', data);
     };
     getUserObjectLog();
     // eslint-disable-next-line react-hooks/exhaustive-deps

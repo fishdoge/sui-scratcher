@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clear": "npx prettier . --write"
   },
   "dependencies": {
     "@mysten/dapp-kit": "^0.14.50",

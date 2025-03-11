@@ -99,8 +99,6 @@ export default function Scratcher() {
       };
 
       setUserObjects(data);
-
-      console.log('playObject', data);
     };
     getUserObjectLog();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -152,7 +150,6 @@ export default function Scratcher() {
     triggerConfetti();
   };
 
-
   function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
@@ -160,9 +157,12 @@ export default function Scratcher() {
   const playSuiScratcher = async (): Promise<string> => {
     const ticketTx = new Transaction();
 
-    if(!userOwnObjects?.usdTokenObject)return 'error'
+    if (!userOwnObjects?.usdTokenObject) return 'error';
 
-    const [coin] = ticketTx.splitCoins(ticketTx.object(userOwnObjects?.usdTokenObject), [5000000]);
+    const [coin] = ticketTx.splitCoins(
+      ticketTx.object(userOwnObjects?.usdTokenObject),
+      [5000000]
+    );
 
     if (!userOwnObjects?.collectBook || !userOwnObjects?.usdTokenObject) {
       return 'error';
@@ -527,32 +527,35 @@ export default function Scratcher() {
                 </h2>
               </div>
               <div className="space-y-4">
-                {purchaseHistory.slice().reverse().map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-start gap-4 p-4 rounded-lg bg-gray-50"
-                  >
-                    <Clock className="h-5 w-5 text-gray-400 mt-1" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500">{item.time}</p>
-                      {item.prize == 'None' ? (
-                        <p className={`font-medium `}>Lose</p>
-                      ) : (
-                        <p className={`font-medium `}>Win</p>
-                      )}
-                      <p
-                        className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
-                      >
-                        {item.prize}
-                      </p>
-                      <p
-                        className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
-                      >
-                        {item.gain + ' '}USDT
-                      </p>
+                {purchaseHistory
+                  .slice()
+                  .reverse()
+                  .map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start gap-4 p-4 rounded-lg bg-gray-50"
+                    >
+                      <Clock className="h-5 w-5 text-gray-400 mt-1" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">{item.time}</p>
+                        {item.prize == 'None' ? (
+                          <p className={`font-medium `}>Lose</p>
+                        ) : (
+                          <p className={`font-medium `}>Win</p>
+                        )}
+                        <p
+                          className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
+                        >
+                          {item.prize}
+                        </p>
+                        <p
+                          className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
+                        >
+                          {item.gain + ' '}USDT
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </motion.div>

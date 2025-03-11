@@ -1,38 +1,34 @@
 'use client';
 
-import { motion } from "framer-motion"
-import { Coins } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useEffect,useState } from 'react';
+import { motion } from 'framer-motion';
+import { Coins } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 const client = new SuiClient({
   url: getFullnodeUrl('testnet'),
 });
 export default function PoolPrize() {
-
-  const [poolUSDTBalance,setPoolUSDTBalance] = useState(0)
+  const [poolUSDTBalance, setPoolUSDTBalance] = useState(0);
 
   useEffect(() => {
-
     async function getContractObjectUSDT() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const txn:any = await client.getObject({
+      const txn: any = await client.getObject({
         id: '0x132931c191c82182b50f0d1d2de7073dbaf8f9a234d06d3c07ad3e90a6b06b2f',
         // fetch the object content field
         options: { showContent: true },
       });
 
-      const data = txn.data?.content?.fields?.reward_pool / 1000000
+      const data = txn.data?.content?.fields?.reward_pool / 1000000;
       const clearfyData = parseInt(data.toString());
 
-      console.log('reward_pool',clearfyData)
+      console.log('reward_pool', clearfyData);
 
-      setPoolUSDTBalance(clearfyData)
+      setPoolUSDTBalance(clearfyData);
     }
 
-    getContractObjectUSDT()
-
-
+    getContractObjectUSDT();
 
     //getCoinIdentifier()
   });
@@ -57,9 +53,13 @@ export default function PoolPrize() {
               </h2>
               <div className="flex items-center gap-3">
                 <Coins className="h-8 w-8 text-yellow-500" />
-                <span className="text-4xl md:text-5xl font-bold text-purple-600">{poolUSDTBalance} USDT</span>
+                <span className="text-4xl md:text-5xl font-bold text-purple-600">
+                  {poolUSDTBalance} USDT
+                </span>
               </div>
-              <p className="text-gray-600 mt-2">Growing with every ticket purchase!</p>
+              <p className="text-gray-600 mt-2">
+                Growing with every ticket purchase!
+              </p>
             </div>
 
             <div className="flex flex-col items-center">
@@ -85,7 +85,9 @@ export default function PoolPrize() {
             </div>
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-4 border border-yellow-100">
               <p className="font-semibold text-amber-700">Jackpot</p>
-              <p className="text-sm text-gray-600">1% chance to win entire pool!</p>
+              <p className="text-sm text-gray-600">
+                1% chance to win entire pool!
+              </p>
             </div>
           </div>
         </div>

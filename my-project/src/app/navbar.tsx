@@ -235,11 +235,15 @@ export default function Navbar() {
           <ConnectButton />
           <div className="md:hidden">
             {isMenuOpen ? (
-              <X className="h-6 w-6 text-gray-600" 
-              onClick={() => setIsMenuOpen(!isMenuOpen)}/>
+              <X
+                className="h-6 w-6 text-gray-600"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              />
             ) : (
-              <Menu className="h-6 w-6 text-gray-600"
-              onClick={() => setIsMenuOpen(!isMenuOpen)} />
+              <Menu
+                className="h-6 w-6 text-gray-600"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              />
             )}
           </div>
           {/* <NetworkSelector /> */}
@@ -269,12 +273,14 @@ export default function Navbar() {
               How to Play
             </a>
           </div>
-            
+
           <div className="px-3 py-2">
             {account ? (
               <div className="grid grid-cols-2 gap-2">
                 <div>Address : {account?.address.substring(0, 9)}</div>
-                <div><Button onClick={getGameTicket}>Get tickets</Button></div>
+                <div>
+                  <Button onClick={getGameTicket}>Get tickets</Button>
+                </div>
               </div>
             ) : (
               <>Wallet not connect</>

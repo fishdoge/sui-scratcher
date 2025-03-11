@@ -41,7 +41,7 @@ interface historyType {
   time: string;
   prize: string;
   dist: string;
-  gain:string
+  gain: string;
 }
 
 // Mock purchase history data
@@ -59,6 +59,7 @@ const client = new SuiClient({
 export default function Scratcher() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isScratchStarted, setIsScratchStarted] = useState(false);
+  const [userUsdtBalance, setUserUsdtBalance] = useState(0);
   const { connectionStatus } = useCurrentWallet();
   const account = useCurrentAccount();
   const { mutateAsync } = useSignAndExecuteTransaction();
@@ -77,25 +78,7 @@ export default function Scratcher() {
         options: { showType: true, showContent: true },
       });
 
-      const usdtCoins = await client.getCoins({
-        owner: account?.address,
-        coinType:
-          '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
-      });
-
-      let coinValue = 0;
-      let biggestObjectValue = 0;
-      let biggestObject;
-      usdtCoins.data.map((index) => {
-        const val = index.balance;
-        if (parseInt(val) > 0) {
-          coinValue += parseInt(val);
-          if (biggestObjectValue < parseInt(val)) {
-            biggestObjectValue = parseInt(val);
-            biggestObject = index.coinObjectId;
-          }
-        }
-      });
+      const biggestObject = await getUsdtObject(account?.address);
 
       let colloctBook;
 
@@ -106,7 +89,7 @@ export default function Scratcher() {
       });
 
       console.log('objects', biggestObject);
-      console.log('coinValue', coinValue);
+
       console.log('colloctBookObject', colloctBook);
       //console.log('coinBalance',coinBalance)
 
@@ -122,6 +105,32 @@ export default function Scratcher() {
     getUserObjectLog();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionStatus]);
+
+  const getUsdtObject = async (user: string) => {
+    const usdtCoins = await client.getCoins({
+      owner: user,
+      coinType:
+        '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
+    });
+
+    let coinValue = 0;
+    let biggestObjectValue = 0;
+    let biggestObject;
+    usdtCoins.data.map((index) => {
+      const val = index.balance;
+      if (parseInt(val) > 0) {
+        coinValue += parseInt(val);
+        if (biggestObjectValue < parseInt(val)) {
+          biggestObjectValue = parseInt(val);
+          biggestObject = index.coinObjectId;
+        }
+      }
+    });
+
+    setUserUsdtBalance(coinValue / 1000000);
+
+    return biggestObject;
+  };
 
   const poolInfo = {
     totalPool: 1000,
@@ -143,42 +152,6 @@ export default function Scratcher() {
     triggerConfetti();
   };
 
-  //   const getGameTicket = async () => {
-  //     console.log('excute');
-
-  //     const ticketTx = new Transaction();
-  //     //const [SUI] = ticketTx.splitCoins(ticketTx.gas, [1_000_000]);
-
-  //     ticketTx.moveCall({
-  //       target:
-  //         '0x80db05324dd2c3752746a8e012f9901bfe8815b5234a3e49faeb29616b8d63bb::suirandom::start_new_collect_book',
-  //       typeArguments: [
-  //         '0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT',
-  //       ],
-  //       arguments: [
-  //         ticketTx.object(
-  //           '0x7cab13913e4106f03512f1059864abb183207c1806dcd0e9caefd7a6f5f35a6e'
-  //         ),
-  //       ],
-  //     });
-
-  //     try {
-  //       await mutateAsync(
-  //         {
-  //           transaction: ticketTx,
-  //           chain: 'sui:testnet',
-  //         },
-  //         {
-  //           onSuccess: (result: any) => {
-  //             console.log('executed transaction', result);
-  //             setDigest(result?.digest);
-  //           },
-  //         }
-  //       );
-  //     } catch (e) {
-  //       console.error(e);
-  //     }
-  //   };
 
   function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -187,7 +160,9 @@ export default function Scratcher() {
   const playSuiScratcher = async (): Promise<string> => {
     const ticketTx = new Transaction();
 
-    console.log(userOwnObjects);
+    if(!userOwnObjects?.usdTokenObject)return 'error'
+
+    const [coin] = ticketTx.splitCoins(ticketTx.object(userOwnObjects?.usdTokenObject), [5000000]);
 
     if (!userOwnObjects?.collectBook || !userOwnObjects?.usdTokenObject) {
       return 'error';
@@ -198,7 +173,7 @@ export default function Scratcher() {
       typeArguments: [usdtArgs],
       arguments: [
         ticketTx.object(userOwnObjects.collectBook),
-        ticketTx.object(userOwnObjects.usdTokenObject),
+        ticketTx.object(coin),
         ticketTx.object(scratcherShop),
         ticketTx.object('0x8'),
       ],
@@ -216,6 +191,10 @@ export default function Scratcher() {
       }
 
       console.log('digest', result.digest);
+      if (account?.address) {
+        getUsdtObject(account?.address);
+      }
+
       return result.digest;
     } catch (error) {
       console.error('Transaction error:', error);
@@ -234,7 +213,7 @@ export default function Scratcher() {
 
     return `${year}/${month}/${date} ${hours}:${minutes}`;
   };
-  const digeestt = async () => {
+  const getFreeUsdt = async () => {
     const ticketTxse = new Transaction();
 
     ticketTxse.moveCall({
@@ -300,7 +279,7 @@ export default function Scratcher() {
   const scartch = async () => {
     const digestDigest: string = await playSuiScratcher();
 
-    if(digestDigest=='error')return;
+    if (digestDigest == 'error') return;
 
     await sleep(1000);
     if (!isScratchStarted) {
@@ -315,26 +294,25 @@ export default function Scratcher() {
         showEvents: true,
       },
     });
-    const finalState = txnDetails?.events?.[0]?.parsedJson?.awards
-    let earn:string = '0';
+    const finalState = txnDetails?.events?.[0]?.parsedJson?.awards;
+    let earn: string = '0';
 
-    if(finalState == 'None'){
-      earn = '- 5'
-    }else if(finalState == 'Bronze'){
-      earn = '+ 10'
-    }else if(finalState == 'Silver'){
-      earn = '+ 20'
-
-    }else if(finalState == 'Gold'){
-        earn = '+ 99999'
+    if (finalState == 'None') {
+      earn = '- 5';
+    } else if (finalState == 'Bronze') {
+      earn = '+ 10';
+    } else if (finalState == 'Silver') {
+      earn = '+ 20';
+    } else if (finalState == 'Gold') {
+      earn = '+ 99999';
     }
 
     purchaseHistory.push({
       id: purchaseHistory.length + 1,
       time: getCurrentDateTime(),
       prize: finalState,
-      dist:digestDigest,
-      gain:earn
+      dist: digestDigest,
+      gain: earn,
     });
 
     // console.log('Full transaction:', txnDetails);
@@ -375,7 +353,7 @@ export default function Scratcher() {
         >
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-5 w-5 text-purple-600" />
-            <h3 className="font-semibold text-gray-800">Current Pool</h3>
+            <h3 className="font-semibold text-gray-800">Initial Pool Size</h3>
           </div>
           <p className="text-2xl font-bold text-purple-600">
             {poolInfo.totalPool} USDT
@@ -443,36 +421,40 @@ export default function Scratcher() {
           >
             <div className="p-8">
               <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-2">Scratch Your Ticket</h2>
-              <p className="text-gray-600">Click below to reveal your lucky numbers</p>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                  Scratch Your Ticket
+                </h2>
+                <p className="text-gray-600">
+                  Click below to reveal your lucky numbers
+                </p>
               </div>
-              
 
               <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-green-600"
-                      >
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                      </svg>
-                      <div>
-                        <p className="text-sm text-gray-500">Your Balance</p>
-                        <p className="font-semibold text-gray-800">250 USDT</p>
-                      </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-green-600"
+                    >
+                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-gray-500">Your Balance</p>
+                      <p className="font-semibold text-gray-800">
+                        {userUsdtBalance + ' '} USDT
+                      </p>
                     </div>
-                   
                   </div>
                 </div>
+              </div>
 
               {/* Scratch Area */}
               <div
@@ -482,7 +464,7 @@ export default function Scratcher() {
                 <div className="text-center">
                   {!isScratchStarted ? (
                     <div>
-                       <Ticket className="h-12 w-12 mx-auto text-purple-400 mb-2" />
+                      <Ticket className="h-12 w-12 mx-auto text-purple-400 mb-2" />
                       <h3 className="text-3xl font-bold text-purple-400 mb-2 mt-4">
                         Click to scratch!
                       </h3>
@@ -510,7 +492,6 @@ export default function Scratcher() {
                   )}
                 </div>
               </div>
-            
 
               <Button
                 className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white"
@@ -524,7 +505,7 @@ export default function Scratcher() {
 
               <Button
                 className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                onClick={digeestt}
+                onClick={getFreeUsdt}
               >
                 Get test USDT token
               </Button>
@@ -546,7 +527,7 @@ export default function Scratcher() {
                 </h2>
               </div>
               <div className="space-y-4">
-                {purchaseHistory.map((item) => (
+                {purchaseHistory.slice().reverse().map((item) => (
                   <div
                     key={item.id}
                     className="flex items-start gap-4 p-4 rounded-lg bg-gray-50"
@@ -567,7 +548,7 @@ export default function Scratcher() {
                       <p
                         className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
                       >
-                        {item.gain + " "}USDT
+                        {item.gain + ' '}USDT
                       </p>
                     </div>
                   </div>

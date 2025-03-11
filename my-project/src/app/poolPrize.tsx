@@ -1,6 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion"
+import { Coins } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { useEffect,useState } from 'react';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 const client = new SuiClient({
@@ -36,42 +38,58 @@ export default function PoolPrize() {
   });
 
   return (
-    <div className="grid md:grid-cols-1 gap-8">
-      {/* Lottery Card */}
-      <motion.div
-        className="relative bg-white rounded-2xl shadow-xl overflow-hidden"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <div className="p-8 items-center">
-          <div className="text-center  mb-6">
-            <div className="">
-              {/* <BadgeDollarSign className="h-8 w-8 text-purple-600 flex justify-center " /> */}
+    <motion.div
+      className="max-w-4xl mx-auto mb-12 relative"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-1 shadow-xl overflow-hidden">
+        <div className="bg-white/95 backdrop-blur-md rounded-xl p-8 relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-200 rounded-full opacity-20"></div>
+          <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-blue-200 rounded-full opacity-20"></div>
 
-              <div className="text-4xl font-semibold text-gray-800 mb-2">
-                Prize Pool
+          <div className="flex flex-col md:flex-row items-center justify-between relative z-10">
+            <div className="mb-6 md:mb-0">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Current Prize Pool
+              </h2>
+              <div className="flex items-center gap-3">
+                <Coins className="h-8 w-8 text-yellow-500" />
+                <span className="text-4xl md:text-5xl font-bold text-purple-600">{poolUSDTBalance} USDT</span>
               </div>
+              <p className="text-gray-600 mt-2">Growing with every ticket purchase!</p>
             </div>
-            <p className="text-3xl font-bold text-purple-600">{poolUSDTBalance + " "}USDT</p>
+
+            <div className="flex flex-col items-center">
+              <div className="relative mb-4">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full blur-md"></div>
+                <Button className="relative bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 rounded-full text-lg font-semibold">
+                  Buy Ticket Now
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500">% chance to win prizes!</p>
+            </div>
           </div>
 
-          {/* Scratch Area */}
-
-          {/* <div className="w-full h-8 text-center mb-6 bg-green-300  to-blue-300 rounded">
-                <p className="text-xl font-bold from-green-600">
-                  Your USDT balance :{' '}
-                </p>
-              </div> */}
-
-          {/* <Button
-              className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-              onClick={digeestt}
-            >
-              Get test USDT token
-            </Button> */}
+          {/* Prize tiers */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+              <p className="font-semibold text-purple-700">Regular Prize</p>
+              <p className="text-sm text-gray-600">14% chance to win 10 USDT</p>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+              <p className="font-semibold text-blue-700">Special Prize</p>
+              <p className="text-sm text-gray-600">6% chance to win 20 USDT</p>
+            </div>
+            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-4 border border-yellow-100">
+              <p className="font-semibold text-amber-700">Jackpot</p>
+              <p className="text-sm text-gray-600">1% chance to win entire pool!</p>
+            </div>
+          </div>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }

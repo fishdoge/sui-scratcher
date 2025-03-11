@@ -443,11 +443,36 @@ export default function Scratcher() {
           >
             <div className="p-8">
               <div className="text-center mb-6">
-                <h2 className="text-3xl font-semibold text-gray-800 mb-2">
-                Scratcher
-                </h2>
-
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">Scratch Your Ticket</h2>
+              <p className="text-gray-600">Click below to reveal your lucky numbers</p>
               </div>
+              
+
+              <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-green-600"
+                      >
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                      </svg>
+                      <div>
+                        <p className="text-sm text-gray-500">Your Balance</p>
+                        <p className="font-semibold text-gray-800">250 USDT</p>
+                      </div>
+                    </div>
+                   
+                  </div>
+                </div>
 
               {/* Scratch Area */}
               <div
@@ -457,8 +482,8 @@ export default function Scratcher() {
                 <div className="text-center">
                   {!isScratchStarted ? (
                     <div>
-                      {' '}
-                      <h3 className="text-3xl font-bold text-purple-400 mb-2 mt-8">
+                       <Ticket className="h-12 w-12 mx-auto text-purple-400 mb-2" />
+                      <h3 className="text-3xl font-bold text-purple-400 mb-2 mt-4">
                         Click to scratch!
                       </h3>
                       {/* <Button>scratch</Button> */}

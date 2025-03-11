@@ -510,11 +510,7 @@ export default function Scratcher() {
                   )}
                 </div>
               </div>
-              <div className="w-full h-8 text-center mb-6 bg-green-300  to-blue-300 rounded">
-                <p className="text-xl font-bold from-green-600">
-                  Your USDT balance :{' '}
-                </p>
-              </div>
+            
 
               <Button
                 className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white"

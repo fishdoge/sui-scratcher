@@ -1,14 +1,22 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Coins } from 'lucide-react';
+import { Coins, Award, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { cn } from '@/lib/utils';
+
+interface PrizePoolProps {
+  totalPool: number;
+  ticketPrice?: number;
+  winProbability?: number;
+  className?: string;
+}
 const client = new SuiClient({
   url: getFullnodeUrl('testnet'),
 });
-export default function PoolPrize() {
+export default function PoolPrize({ className }: PrizePoolProps) {
   const [poolUSDTBalance, setPoolUSDTBalance] = useState(0);
 
   useEffect(() => {
@@ -35,13 +43,19 @@ export default function PoolPrize() {
 
   return (
     <motion.div
-      className="max-w-4xl mx-auto mb-12 relative"
+      className={cn('max-w-4xl mx-auto mb-12 relative', className)}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-1 shadow-xl overflow-hidden">
-        <div className="bg-white/95 backdrop-blur-md rounded-xl p-8 relative overflow-hidden">
+      <div  className={cn(
+          "p-[3px] rounded-2xl shadow-xl overflow-hidden relative",
+          "bg-gradient-to-r from-purple-600 to-blue-600",
+          "before:absolute before:inset-0 before:bg-gradient-to-r before:from-pink-500 before:via-purple-500 before:to-blue-500 before:animate-gradient-x",
+          "after:absolute after:inset-0 after:bg-gradient-to-r after:from-blue-500 after:via-purple-500 after:to-pink-500 after:animate-gradient-x after:animation-delay-1000",
+         
+        )}>
+        <div className="bg-white/95 backdrop-blur-md rounded-xl p-8 relative overflow-hidden z-10">
           {/* Decorative elements */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-200 rounded-full opacity-20"></div>
           <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-blue-200 rounded-full opacity-20"></div>
@@ -64,12 +78,33 @@ export default function PoolPrize() {
 
             <div className="flex flex-col items-center">
               <div className="relative mb-4">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full blur-md"></div>
-                <Button className="relative bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 rounded-full text-lg font-semibold">
-                  Buy Ticket Now
-                </Button>
+                {/* Golden button with shimmering effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full blur-md animate-pulse"></div>
+                <div className="flex items-center gap-3">
+                  {/* Jackpot indicator */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-amber-450 rounded-full animate-ping opacity-30"></div>
+                    <div className="relative bg-gradient-to-r from-amber-500 to-yellow-400 p-3 rounded-full shadow-lg">
+                      <Award className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+
+                  <Button className="relative bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-white px-8 py-6 rounded-full text-lg font-semibold shadow-lg border border-amber-300 group overflow-hidden">
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-yellow-300 to-amber-300 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                    <div className="absolute -inset-x-full top-0 h-px bg-gradient-to-r from-transparent via-yellow-200 to-transparent animate-shimmer"></div>
+                    <div className="absolute -inset-y-full right-0 w-px bg-gradient-to-b from-transparent via-yellow-200 to-transparent animate-shimmer-vertical"></div>
+                    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-yellow-200 to-transparent animate-shimmer"></div>
+                    <div className="absolute -inset-y-full left-0 w-px bg-gradient-to-b from-transparent via-yellow-200 to-transparent animate-shimmer-vertical"></div>
+                    <span className="relative z-10 flex items-center gap-1">
+                      Redeem Jackpot
+                      <Star className="h-4 w-4 fill-yellow-100 stroke-yellow-100" />
+                    </span>
+                  </Button>
+                </div>
               </div>
-              <p className="text-sm text-gray-500">% chance to win prizes!</p>
+              <p className="text-sm text-gray-500">
+                Click to get entire prize!
+              </p>
             </div>
           </div>
 
@@ -86,7 +121,7 @@ export default function PoolPrize() {
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-4 border border-yellow-100">
               <p className="font-semibold text-amber-700">Jackpot</p>
               <p className="text-sm text-gray-600">
-                1% chance to win entire pool!
+                0.1% chance to win entire pool!
               </p>
             </div>
           </div>

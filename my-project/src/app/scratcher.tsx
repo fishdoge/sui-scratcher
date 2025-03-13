@@ -407,7 +407,7 @@ export default function Scratcher() {
       </div>
 
       {/* pool info */}
-      <PoolPrize />
+      <PoolPrize totalPool={0} />
 
       {/* Lottery Section with History */}
       <div className="max-w-6xl mx-auto mb-12 mt-[60px]">
@@ -538,7 +538,7 @@ export default function Scratcher() {
                       <Clock className="h-5 w-5 text-gray-400 mt-1" />
                       <div className="flex-1">
                         <p className="text-sm text-gray-500">{item.time}</p>
-                   
+
                         <p
                           className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
                         >

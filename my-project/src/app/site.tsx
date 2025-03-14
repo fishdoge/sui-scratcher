@@ -6,7 +6,7 @@ import { useCurrentWallet } from '@mysten/dapp-kit';
 
 import Navbar from './navbar';
 import Scratcher from './scratcher';
-import Footer from './footer'
+import Footer from './footer';
 
 // Mock purchase history data
 
@@ -23,7 +23,7 @@ export default function Site() {
       <Navbar />
 
       <Scratcher />
-      <Footer/>
+      <Footer />
     </div>
   );
 }

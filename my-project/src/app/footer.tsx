@@ -59,7 +59,8 @@ export default function Footer() {
           </div>
           <div className="border-t mt-8 pt-8 text-center text-gray-600">
             <p>
-              &copy; {new Date().getFullYear()} Sui Scratcher. All rights reserved.
+              &copy; {new Date().getFullYear()} Sui Scratcher. All rights
+              reserved.
             </p>
           </div>
         </div>

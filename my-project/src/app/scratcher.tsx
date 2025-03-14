@@ -472,15 +472,17 @@ export default function Scratcher() {
                     </div>
                   ) : // <p className="text-gray-600">Click to scratch!</p>
                   !isRevealed ? (
-                    <h3 className="text-2xl font-bold text-purple-400 mb-2 mt-8">
-                      Scratching...
-                    </h3>
+                    <div className="py-8">
+                      <div className="animate-spin h-12 w-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                      <p className="text-gray-600">Scratching...</p>
+                    </div>
                   ) : (
                     // <p className="text-gray-600">Scratching...</p>
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5 }}
+                    initial={{ rotateY: 180, opacity: 0 }}
+                    animate={{ rotateY: 0, opacity: 1 }}
+                    transition={{ duration: 0.3, delay:  0.1 }}
+                   
                     >
                       <h3 className="text-2xl font-bold text-purple-600 mb-2">
                         Winning result

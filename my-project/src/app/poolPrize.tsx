@@ -48,13 +48,14 @@ export default function PoolPrize({ className }: PrizePoolProps) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <div  className={cn(
-          "p-[3px] rounded-2xl shadow-xl overflow-hidden relative",
-          "bg-gradient-to-r from-purple-600 to-blue-600",
-          "before:absolute before:inset-0 before:bg-gradient-to-r before:from-pink-500 before:via-purple-500 before:to-blue-500 before:animate-gradient-x",
-          "after:absolute after:inset-0 after:bg-gradient-to-r after:from-blue-500 after:via-purple-500 after:to-pink-500 after:animate-gradient-x after:animation-delay-1000",
-         
-        )}>
+      <div
+        className={cn(
+          'p-[3px] rounded-2xl shadow-xl overflow-hidden relative',
+          'bg-gradient-to-r from-purple-600 to-blue-600',
+          'before:absolute before:inset-0 before:bg-gradient-to-r before:from-pink-500 before:via-purple-500 before:to-blue-500 before:animate-gradient-x',
+          'after:absolute after:inset-0 after:bg-gradient-to-r after:from-blue-500 after:via-purple-500 after:to-pink-500 after:animate-gradient-x after:animation-delay-1000'
+        )}
+      >
         <div className="bg-white/95 backdrop-blur-md rounded-xl p-8 relative overflow-hidden z-10">
           {/* Decorative elements */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-200 rounded-full opacity-20"></div>

@@ -64,7 +64,7 @@ public struct Collect_Book has key {
     silver: u64,
     bronze: u64,
     pool: ID,
-    epoch: u64,
+    epoch: u64
 }
 
 #[allow(unused_function)]
@@ -111,11 +111,11 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
     transfer::public_transfer(coin, ctx.sender());
 
     let mut generator = new_generator(r, ctx);
-    let random_value = generator.generate_u64_in_range(1, 200);
+    let random_value = generator.generate_u64_in_range(1, 20000);
 
     // 200 - 43 + 14 * 2 + 6 * 2 + 1 * 2 + 0.5 * 2 = 200
     // 0 < 78.5 < 92.5 < 98.5 < 99.5 < 100
-    if (random_value <= 157/*78.5%*/) {
+    if (random_value <= 1/*78.5%*/) {
         shop.continue_set = true;
         collect_book.bronze = collect_book.bronze + 0;
         transfer::public_transfer(
@@ -127,7 +127,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
-    } else if (random_value <= 185/*14%*/) {
+    } else if (random_value <= 7985/*14%*/) {
         shop.continue_set = true;
         collect_book.bronze = collect_book.bronze + 1;
         transfer::public_transfer(
@@ -139,7 +139,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
-    } else if (random_value <= 197/*6%*/) {
+    } else if (random_value <= 9385/*6%*/) {
         shop.continue_set = true;
         collect_book.silver = collect_book.silver + 1;
         transfer::public_transfer(
@@ -151,7 +151,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
-    } else if (random_value <= 199/*1%*/) {
+    } else if (random_value <= 9985/*0.1%*/) {
         shop.continue_set = true;
         collect_book.gold = collect_book.gold + 1;
         transfer::public_transfer(
@@ -163,7 +163,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
-    } else if (random_value <= 200/*0.5*/){
+    } else if (random_value <= 9995/*0.05*/){
         shop.continue_set = false;
         collect_book.gold = collect_book.gold + 0;
         transfer::public_transfer(

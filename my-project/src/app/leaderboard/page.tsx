@@ -53,7 +53,7 @@ export default function LeaderboardPage() {
             <div className="flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-purple-600" />
               <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                LuckyDraw
+              Sui Scratcher
               </span>
             </div>
 
@@ -82,7 +82,7 @@ export default function LeaderboardPage() {
               >
                 How to Play
               </Link>
-         
+
             </div>
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function LeaderboardPage() {
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="h-6 w-6 text-purple-600" />
                 <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  LuckyDraw
+                Sui Scratcher
                 </span>
               </div>
               <p className="text-gray-600">
@@ -240,7 +240,7 @@ export default function LeaderboardPage() {
           </div>
           <div className="border-t mt-8 pt-8 text-center text-gray-600">
             <p>
-              &copy; {new Date().getFullYear()} LuckyDraw. All rights reserved.
+              &copy; {new Date().getFullYear()} Sui Scratcher. All rights reserved.
             </p>
           </div>
         </div>

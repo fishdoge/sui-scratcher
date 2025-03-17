@@ -22,6 +22,7 @@ import {
 } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 import { scratcherShop, suiPackage, scratcherCollectBook } from '@/chainConfig';
+import Link from 'next/link';
 
 type userObject = {
   collectBook: string | undefined;
@@ -207,6 +208,12 @@ export default function Navbar() {
             >
               Home
             </a>
+            <Link
+              href="/leaderboard"
+              className="text-gray-600 hover:text-purple-600 transition-colors"
+            >
+              Leaderboard
+            </Link>
 
             <a
               href="#"

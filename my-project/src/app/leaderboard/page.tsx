@@ -1,70 +1,48 @@
-"use client"
+'use client';
 
-import { motion } from "framer-motion"
-import { Sparkles, Trophy, ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Leaderboard from "@/components/leaderboard"
-import Link from "next/link"
+import { motion } from 'framer-motion';
+import { Sparkles, Trophy, ArrowLeft } from 'lucide-react';
+import Leaderboard from '@/components/leaderboard';
+import Link from 'next/link';
 
 // Mock leaderboard data
 const leaderboardData = [
   {
     id: 1,
-    name: "Alex Thompson",
+    name: '0x7895115',
     plays: 347,
     winnings: 2580,
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+    avatar: '/user-check.svg',
   },
   {
     id: 2,
-    name: "Sarah Chen",
+    name: '0xaff45815',
     plays: 315,
     winnings: 1950,
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    avatar: '/user-check.svg',
   },
   {
     id: 3,
-    name: "Michael Rodriguez",
+    name: '0x4568eca87',
     plays: 289,
     winnings: 3200,
-    avatar: "https://randomuser.me/api/portraits/men/67.jpg",
+    avatar: '/user-check.svg',
   },
   {
     id: 4,
-    name: "Emma Wilson",
+    name: '0x4568eca87',
     plays: 256,
     winnings: 1100,
-    avatar: "https://randomuser.me/api/portraits/women/17.jpg",
+    avatar: '/user-check.svg',
   },
   {
     id: 5,
-    name: "David Kim",
+    name: '0x4568eca87',
     plays: 234,
     winnings: 1750,
-    avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-  },
-  {
-    id: 6,
-    name: "Olivia Martinez",
-    plays: 198,
-    winnings: 950,
-    avatar: "https://randomuser.me/api/portraits/women/28.jpg",
-  },
-  {
-    id: 7,
-    name: "James Johnson",
-    plays: 176,
-    winnings: 1320,
-    avatar: "https://randomuser.me/api/portraits/men/22.jpg",
-  },
-  {
-    id: 8,
-    name: "Sophia Lee",
-    plays: 154,
-    winnings: 780,
-    avatar: "https://randomuser.me/api/portraits/women/59.jpg",
-  },
-]
+    avatar: '/user-check.svg',
+  }
+];
 
 export default function LeaderboardPage() {
   return (
@@ -80,19 +58,31 @@ export default function LeaderboardPage() {
             </div>
 
             <div className="hidden md:flex items-center gap-6">
-              <Link href="/" className="text-gray-600 hover:text-purple-600 transition-colors">
+              <Link
+                href="/"
+                className="text-gray-600 hover:text-purple-600 transition-colors"
+              >
                 Home
               </Link>
-              <Link href="/leaderboard" className="text-purple-600 font-medium transition-colors">
+              <Link
+                href="/leaderboard"
+                className="text-purple-600 font-medium transition-colors"
+              >
                 Leaderboard
               </Link>
-              <Link href="#" className="text-gray-600 hover:text-purple-600 transition-colors">
+              <Link
+                href="#"
+                className="text-gray-600 hover:text-purple-600 transition-colors"
+              >
                 Results
               </Link>
-              <Link href="#" className="text-gray-600 hover:text-purple-600 transition-colors">
+              <Link
+                href="#"
+                className="text-gray-600 hover:text-purple-600 transition-colors"
+              >
                 How to Play
               </Link>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">Connect Wallet</Button>
+         
             </div>
           </div>
         </div>
@@ -139,7 +129,9 @@ export default function LeaderboardPage() {
               <Trophy className="h-5 w-5 text-amber-500" />
               <h3 className="font-semibold text-gray-800">Top Player</h3>
             </div>
-            <p className="text-2xl font-bold text-amber-500">{leaderboardData[0].name}</p>
+            <p className="text-2xl font-bold text-amber-500">
+              {leaderboardData[0].name}
+            </p>
             <p className="text-gray-600">{leaderboardData[0].plays} plays</p>
           </motion.div>
 
@@ -170,19 +162,21 @@ export default function LeaderboardPage() {
               <h3 className="font-semibold text-gray-800">Total Winnings</h3>
             </div>
             <p className="text-2xl font-bold text-green-600">
-              {leaderboardData.reduce((sum, player) => sum + player.winnings, 0)} USDT
+              {leaderboardData.reduce(
+                (sum, player) => sum + player.winnings,
+                0
+              )}{' '}
+              USDT
             </p>
             <p className="text-gray-600">paid out to players</p>
           </motion.div>
         </div>
 
-      
         <div className="max-w-4xl mx-auto">
           <Leaderboard players={leaderboardData} />
         </div>
       </main>
 
-   
       <footer className="bg-white/70 backdrop-blur-md border-t">
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -193,30 +187,44 @@ export default function LeaderboardPage() {
                   LuckyDraw
                 </span>
               </div>
-              <p className="text-gray-600">The most transparent and fair lottery platform on the blockchain.</p>
+              <p className="text-gray-600">
+                The most transparent and fair lottery platform on the
+                blockchain.
+              </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-800 mb-4">Quick Links</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="#" className="text-gray-600 hover:text-purple-600">
+                  <Link
+                    href="#"
+                    className="text-gray-600 hover:text-purple-600"
+                  >
                     How it Works
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-600 hover:text-purple-600">
+                  <Link
+                    href="#"
+                    className="text-gray-600 hover:text-purple-600"
+                  >
                     Past Results
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-600 hover:text-purple-600">
+                  <Link
+                    href="#"
+                    className="text-gray-600 hover:text-purple-600"
+                  >
                     FAQs
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-800 mb-4">Connect With Us</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">
+                Connect With Us
+              </h3>
               <div className="flex gap-4">
                 <a href="#" className="text-gray-600 hover:text-purple-600">
                   Twitter
@@ -231,11 +239,12 @@ export default function LeaderboardPage() {
             </div>
           </div>
           <div className="border-t mt-8 pt-8 text-center text-gray-600">
-            <p>&copy; {new Date().getFullYear()} LuckyDraw. All rights reserved.</p>
+            <p>
+              &copy; {new Date().getFullYear()} LuckyDraw. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
-

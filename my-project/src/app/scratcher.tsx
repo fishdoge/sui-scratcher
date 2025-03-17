@@ -479,10 +479,9 @@ export default function Scratcher() {
                   ) : (
                     // <p className="text-gray-600">Scratching...</p>
                     <motion.div
-                    initial={{ rotateY: 180, opacity: 0 }}
-                    animate={{ rotateY: 0, opacity: 1 }}
-                    transition={{ duration: 0.3, delay:  0.1 }}
-                   
+                      initial={{ rotateY: 180, opacity: 0 }}
+                      animate={{ rotateY: 0, opacity: 1 }}
+                      transition={{ duration: 0.3, delay: 0.1 }}
                     >
                       <h3 className="text-2xl font-bold text-purple-600 mb-2">
                         Winning result

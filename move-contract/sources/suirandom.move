@@ -12,6 +12,7 @@ use sui::{
         balance::{Self, Balance},
         coin::{Self, Coin, CoinMetadata},
         event,
+        clock::Clock
     };
 
 const EInvalidErrorPool: u64 = 0;
@@ -19,6 +20,13 @@ const EInvalidContinue: u64 = 1;
 const EInvalidBalance: u64 = 2;
 const EInvalidQualifications: u64 = 3;
 const EInvalidOldCollectBook: u64 = 4;
+
+public enum A {
+    Consolation_prize,
+    Special_prize,
+    Jackpot,
+    Termination_prize
+}
 
 // Send Message With Player Get Result Each Time.
 public struct WinnerEvent has copy, drop {
@@ -63,6 +71,7 @@ public struct Collect_Book has key {
     gold: u64,
     silver: u64,
     bronze: u64,
+    timestamp: u64,
     pool: ID,
     epoch: u64
 }
@@ -103,20 +112,30 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
     assert!(coin.value() >= shop.price, EInvalidBalance);
     assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
 
-    // Count packup time.
-    shop.count = shop.count +1;
-
     // Take $5 from coin and put in the reward pool. Send back balance for sender.
-    shop.reward_pool.join(coin.split(shop.price, ctx).into_balance());
+    let current_timestamp = ctx.epoch_timestamp_ms();
+    let one_minute_in_ms: u64 = 60000;
+    let target_timestamp = current_timestamp + one_minute_in_ms;
+    
+    if (collect_book.timestamp < target_timestamp) {
+        shop.reward_pool.join(coin.split(shop.price * 4 / 5, ctx).into_balance());
+    } else {
+        shop.reward_pool.join(coin.split(shop.price, ctx).into_balance());
+    };
     transfer::public_transfer(coin, ctx.sender());
 
-    let mut generator = new_generator(r, ctx);
-    let random_value = generator.generate_u64_in_range(1, 20000);
+    // Counting packup and time.
+    shop.count = shop.count +1;
+    collect_book.timestamp = ctx.epoch_timestamp_ms();
+    shop.timestamp = ctx.epoch_timestamp_ms();
 
-    // 200 - 43 + 14 * 2 + 6 * 2 + 1 * 2 + 0.5 * 2 = 200
-    // 0 < 78.5 < 92.5 < 98.5 < 99.5 < 100
-    if (random_value <= 1/*78.5%*/) {
-        shop.continue_set = true;
+    let mut generator = new_generator(r, ctx);
+    let random_value = generator.generate_u64_in_range(1, 10000);
+
+    // 10000 - 2015 + 1400 + 600 + 10 + 5 = 10000
+    // 0 < 7985 < 9385 < 9985 < 9995 < 10000
+    if (random_value <= 7985/*78.5%*/) {
+        shop.epoch = shop.epoch + 0;
         collect_book.bronze = collect_book.bronze + 0;
         transfer::public_transfer(
             coin::from_balance(shop.reward_pool.split(0), ctx),
@@ -127,8 +146,8 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
-    } else if (random_value <= 7985/*14%*/) {
-        shop.continue_set = true;
+    } else if (random_value <= 9385/*14%*/) {
+        shop.epoch = shop.epoch + 0;
         collect_book.bronze = collect_book.bronze + 1;
         transfer::public_transfer(
             coin::from_balance(shop.reward_pool.split(shop.price*2), ctx),
@@ -139,8 +158,8 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
-    } else if (random_value <= 9385/*6%*/) {
-        shop.continue_set = true;
+    } else if (random_value <= 9985/*6%*/) {
+        shop.epoch = shop.epoch + 0;
         collect_book.silver = collect_book.silver + 1;
         transfer::public_transfer(
             coin::from_balance(shop.reward_pool.split(shop.price*4), ctx),
@@ -151,8 +170,8 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
-    } else if (random_value <= 9985/*0.1%*/) {
-        shop.continue_set = true;
+    } else if (random_value <= 9995/*0.1%*/) {
+        shop.epoch = shop.epoch + 0;
         collect_book.gold = collect_book.gold + 1;
         transfer::public_transfer(
             coin::from_balance(shop.reward_pool.split(0), ctx),
@@ -163,11 +182,12 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
-    } else if (random_value <= 9995/*0.05*/){
-        shop.continue_set = false;
+    } else if (random_value <= 10000/*0.05*/){
+        shop.epoch = shop.epoch + 1;
         collect_book.gold = collect_book.gold + 0;
+        let reward_value = shop.reward_pool.value();
         transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(0), ctx),
+            coin::from_balance(shop.reward_pool.split(reward_value * 7 /10), ctx),
             ctx.sender(),
         );
         event::emit(WinnerEvent {
@@ -178,6 +198,20 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
     };
 
 }
+
+/*fun scratch<T> (collect_book: &mut Collect_Book, shop: &mut Game_Shop<T>, r: u64, ctx: &mut TxContext) {
+    shop.epoch = shop.epoch + 1;
+    collect_book.gold = collect_book.gold + 0;
+    transfer::public_transfer(
+        coin::from_balance(shop.reward_pool.split(0), ctx),
+        ctx.sender(),
+    );
+    event::emit(WinnerEvent {
+        awards: string::utf8(b"epoch Off"),
+        winner: ctx.sender(),
+        seed_number: r,
+    });
+}*/
 
 entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
     assert!(object::id(shop) == collect_book.pool, EInvalidErrorPool);
@@ -266,6 +300,7 @@ entry fun start_new_collect_book<T> (shop: &Game_Shop<T>, ctx: &mut TxContext) {
             bronze: 0,
             pool: object::id(shop),
             epoch: shop.epoch,
+            timestamp: ctx.epoch_timestamp_ms(),
         },
         ctx.sender()
     )

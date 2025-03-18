@@ -35,6 +35,9 @@ import {
   scratcherShop,
   scratcherCollectBook,
 } from '@/chainConfig';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
+import { graphql } from '@mysten/sui/graphql/schemas/latest';
+
 
 interface historyType {
   id: number;
@@ -100,6 +103,36 @@ export default function Scratcher() {
 
       setUserObjects(data);
     };
+    const gqlClient = new SuiGraphQLClient({
+      url: 'https://sui-testnet.mystenlabs.com/graphql',
+    });
+    const coinIdentifierQuery = graphql(`
+      query getObject(
+        $id: SuiAddress!
+      ) {
+        object(address: $id) {
+              asMoveObject {
+                contents  {
+                  json
+                }
+              }
+        }
+      }
+    `);
+    const getCoinIdentifier = async () => {
+      const result = await gqlClient.query({
+        query: coinIdentifierQuery,
+        variables: {
+          id:
+            '0x132931c191c82182b50f0d1d2de7073dbaf8f9a234d06d3c07ad3e90a6b06b2f'
+        },
+      });
+      console.log('result:Current Prize Pool',result?.data?.object?.asMoveObject?.contents?.json?.reward_pool);
+      console.log('result:Tickets Sold',result?.data?.object?.asMoveObject?.contents?.json?.count);
+      console.log('result:Turn',result?.data?.object?.asMoveObject?.contents?.json?.epoch);
+      // Please check miro for more detail.
+    }
+    getCoinIdentifier();
     getUserObjectLog();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionStatus]);

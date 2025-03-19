@@ -202,25 +202,19 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            <a
-              href="#"
-              className="text-gray-600 hover:text-purple-600 transition-colors"
-            >
-              Home
-            </a>
             <Link
               href="/leaderboard"
               className="text-gray-600 hover:text-purple-600 transition-colors"
             >
               Leaderboard
             </Link>
-
-            <a
-              href="#"
+            <Link
+              href="/create"
               className="text-gray-600 hover:text-purple-600 transition-colors"
             >
-              How to Play
-            </a>
+              Create Your Pool
+            </Link>
+
             {account ? (
               <>
                 <div>Address : {account?.address.substring(0, 9)}</div>

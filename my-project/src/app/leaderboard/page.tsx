@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, Trophy, ArrowLeft } from 'lucide-react';
 import Leaderboard from '@/components/leaderboard';
 import Link from 'next/link';
+import Footer from '../footer';
 
 // Mock leaderboard data
 const leaderboardData = [
@@ -41,7 +42,7 @@ const leaderboardData = [
     plays: 234,
     winnings: 1750,
     avatar: '/user-check.svg',
-  }
+  },
 ];
 
 export default function LeaderboardPage() {
@@ -53,7 +54,7 @@ export default function LeaderboardPage() {
             <div className="flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-purple-600" />
               <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Sui Scratcher
+                Sui Scratcher
               </span>
             </div>
 
@@ -82,7 +83,6 @@ export default function LeaderboardPage() {
               >
                 How to Play
               </Link>
-
             </div>
           </div>
         </div>
@@ -177,74 +177,7 @@ export default function LeaderboardPage() {
         </div>
       </main>
 
-      <footer className="bg-white/70 backdrop-blur-md border-t">
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-6 w-6 text-purple-600" />
-                <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Sui Scratcher
-                </span>
-              </div>
-              <p className="text-gray-600">
-                The most transparent and fair lottery platform on the
-                blockchain.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-600 hover:text-purple-600"
-                  >
-                    How it Works
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-600 hover:text-purple-600"
-                  >
-                    Past Results
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-600 hover:text-purple-600"
-                  >
-                    FAQs
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-4">
-                Connect With Us
-              </h3>
-              <div className="flex gap-4">
-                <a href="#" className="text-gray-600 hover:text-purple-600">
-                  Twitter
-                </a>
-                <a href="#" className="text-gray-600 hover:text-purple-600">
-                  Discord
-                </a>
-                <a href="#" className="text-gray-600 hover:text-purple-600">
-                  Telegram
-                </a>
-              </div>
-            </div>
-          </div>
-          <div className="border-t mt-8 pt-8 text-center text-gray-600">
-            <p>
-              &copy; {new Date().getFullYear()} Sui Scratcher. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

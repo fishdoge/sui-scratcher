@@ -38,7 +38,6 @@ import {
 import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { graphql } from '@mysten/sui/graphql/schemas/latest';
 
-
 interface historyType {
   id: number;
   time: string;
@@ -63,6 +62,8 @@ export default function Scratcher() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isScratchStarted, setIsScratchStarted] = useState(false);
   const [userUsdtBalance, setUserUsdtBalance] = useState(0);
+  const [scratcherSold, setScratcherSold] = useState(0);
+  const [gameRound, setGameRound] = useState(0);
   const { connectionStatus } = useCurrentWallet();
   const account = useCurrentAccount();
   const { mutateAsync } = useSignAndExecuteTransaction();
@@ -107,15 +108,13 @@ export default function Scratcher() {
       url: 'https://sui-testnet.mystenlabs.com/graphql',
     });
     const coinIdentifierQuery = graphql(`
-      query getObject(
-        $id: SuiAddress!
-      ) {
+      query getObject($id: SuiAddress!) {
         object(address: $id) {
-              asMoveObject {
-                contents  {
-                  json
-                }
-              }
+          asMoveObject {
+            contents {
+              json
+            }
+          }
         }
       }
     `);
@@ -123,15 +122,22 @@ export default function Scratcher() {
       const result = await gqlClient.query({
         query: coinIdentifierQuery,
         variables: {
-          id:
-            '0x132931c191c82182b50f0d1d2de7073dbaf8f9a234d06d3c07ad3e90a6b06b2f'
+          id: '0x132931c191c82182b50f0d1d2de7073dbaf8f9a234d06d3c07ad3e90a6b06b2f',
         },
       });
-      console.log('result:Current Prize Pool',result?.data?.object?.asMoveObject?.contents?.json?.reward_pool);
-      console.log('result:Tickets Sold',result?.data?.object?.asMoveObject?.contents?.json?.count);
-      console.log('result:Turn',result?.data?.object?.asMoveObject?.contents?.json?.epoch);
+
+      const tickSold = (result?.data?.object?.asMoveObject?.contents?.json as any)?.count ?? 0;
+      const gameTurn = (result?.data?.object?.asMoveObject?.contents?.json as any)?.epoch ?? 0;
+
+   
+     
+      console.log('result:Tickets Sold', tickSold);
+      console.log('result:Turn', gameTurn);
       // Please check miro for more detail.
-    }
+
+      setScratcherSold(tickSold);
+      setGameRound(gameTurn);
+    };
     getCoinIdentifier();
     getUserObjectLog();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -403,9 +409,7 @@ export default function Scratcher() {
             <Ticket className="h-5 w-5 text-blue-600" />
             <h3 className="font-semibold text-gray-800">Tickets Sold</h3>
           </div>
-          <p className="text-2xl font-bold text-blue-600">
-            {poolInfo.ticketsSold}
-          </p>
+          <p className="text-2xl font-bold text-blue-600">{scratcherSold}</p>
         </motion.div>
 
         <motion.div
@@ -431,11 +435,9 @@ export default function Scratcher() {
         >
           <div className="flex items-center gap-3 mb-2">
             <Info className="h-5 w-5 text-orange-600" />
-            <h3 className="font-semibold text-gray-800">Jackpot Holders</h3>
+            <h3 className="font-semibold text-gray-800">Game Round</h3>
           </div>
-          <p className="text-2xl font-bold text-orange-600">
-            {poolInfo.jackpotHolders}
-          </p>
+          <p className="text-2xl font-bold text-orange-600">{gameRound}</p>
         </motion.div>
       </div>
 

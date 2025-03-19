@@ -12,12 +12,11 @@ export default function Footer() {
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="h-6 w-6 text-purple-600" />
                 <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  LuckyDraw
+                  Sui Scratcher
                 </span>
               </div>
               <p className="text-gray-600">
-                The most transparent and fair lottery platform on the
-                blockchain.
+                The most transparent and fair lottery platform on SUI.
               </p>
             </div>
             <div>

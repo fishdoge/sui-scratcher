@@ -87,6 +87,7 @@ export default function Scratcher() {
       let colloctBook;
 
       userObjects.data.map((index) => {
+        console.log(index.data)
         if (index.data?.type === scratcherCollectBook) {
           colloctBook = index.data.objectId;
         }
@@ -316,6 +317,7 @@ export default function Scratcher() {
   };
 
   const scartch = async () => {
+    console.log('scartch')
     const digestDigest: string = await playSuiScratcher();
 
     if (digestDigest == 'error') return;

@@ -113,15 +113,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
     assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
 
     // Take $5 from coin and put in the reward pool. Send back balance for sender.
-    let current_timestamp = ctx.epoch_timestamp_ms();
-    let one_minute_in_ms: u64 = 60000;
-    let target_timestamp = current_timestamp + one_minute_in_ms;
-    
-    if (collect_book.timestamp < target_timestamp) {
-        shop.reward_pool.join(coin.split(shop.price * 4 / 5, ctx).into_balance());
-    } else {
-        shop.reward_pool.join(coin.split(shop.price, ctx).into_balance());
-    };
+    shop.reward_pool.join(coin.split(shop.price, ctx).into_balance());
     transfer::public_transfer(coin, ctx.sender());
 
     // Counting packup and time.

@@ -118,8 +118,6 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 
     // Counting packup and time.
     shop.count = shop.count +1;
-    collect_book.timestamp = ctx.epoch_timestamp_ms();
-    shop.timestamp = ctx.epoch_timestamp_ms();
 
     let mut generator = new_generator(r, ctx);
     let random_value = generator.generate_u64_in_range(1, 10000);

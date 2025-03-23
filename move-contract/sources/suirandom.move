@@ -11,15 +11,17 @@ use sui::{
         random::{Random, new_generator},
         balance::{Self, Balance},
         coin::{Self, Coin, CoinMetadata},
-        event,
-        clock::Clock
+        event
     };
 
-const EInvalidErrorPool: u64 = 0;
-const EInvalidContinue: u64 = 1;
-const EInvalidBalance: u64 = 2;
-const EInvalidQualifications: u64 = 3;
-const EInvalidOldCollectBook: u64 = 4;
+const EInvalidVersion: u64 = 0;
+const EInvalidErrorPool: u64 = 1;
+const EInvalidContinue: u64 = 2;
+const EInvalidBalance: u64 = 3;
+const EInvalidQualifications: u64 = 4;
+const EInvalidOldCollectBook: u64 = 5;
+
+const VERSION: u64 = 1;
 
 public enum A {
     Consolation_prize,
@@ -52,6 +54,7 @@ public struct AdminCapability has key {
 */
 public struct Game_Shop<phantom T> has key {
     id: UID,
+    version: u64,
     timestamp: u64,
     epoch: u64,
     reward_pool: Balance<T>,
@@ -68,6 +71,7 @@ public struct Game_Shop<phantom T> has key {
 */
 public struct Collect_Book has key {
     id: UID,
+    version: u64,
     gold: u64,
     silver: u64,
     bronze: u64,
@@ -96,6 +100,7 @@ entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut 
     transfer::share_object(
         Game_Shop {
             id: object::new(ctx),
+            version: VERSION,
             timestamp: ctx.epoch_timestamp_ms(),
             epoch: 1,
             reward_pool: balance::zero<T>(),
@@ -107,6 +112,7 @@ entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut 
 }
 
 entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &mut Game_Shop<T>, r: &Random, ctx: &mut TxContext) {
+    assert!(collect_book.version == shop.version, EInvalidVersion);
     assert!(object::id(shop) == collect_book.pool, EInvalidErrorPool);
     assert!(shop.continue_set == true, EInvalidContinue);
     assert!(coin.value() >= shop.price, EInvalidBalance);
@@ -124,7 +130,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 
     // 10000 - 2015 + 1400 + 600 + 10 + 5 = 10000
     // 0 < 7985 < 9385 < 9985 < 9995 < 10000
-    if (random_value <= 7985/*78.5%*/) {
+    if (random_value <= 7985/*79.85%*/) {
         shop.epoch = shop.epoch + 0;
         collect_book.bronze = collect_book.bronze + 0;
         transfer::public_transfer(
@@ -279,12 +285,16 @@ entry fun freeze_stop_epoch<T> (_: &AdminCapability, shop: &mut Game_Shop<T>) {
     shop.continue_set = false;
 }
 
+entry fun update_shop_version<T> (_: &AdminCapability, shop: &mut Game_Shop<T>) {
+    shop.version = VERSION;
+}
 
 // User Operator
 entry fun start_new_collect_book<T> (shop: &Game_Shop<T>, ctx: &mut TxContext) {
     transfer::transfer(
         Collect_Book {
             id: object::new(ctx),
+            version: VERSION,
             gold: 0,
             silver: 0,
             bronze: 0,
@@ -297,10 +307,20 @@ entry fun start_new_collect_book<T> (shop: &Game_Shop<T>, ctx: &mut TxContext) {
 }
 
 entry fun refresh_collect_book<T> (mut collect_book: Collect_Book, shop: &Game_Shop<T>, ctx: &TxContext) {
+    assert!(collect_book.version == shop.version);
     collect_book.gold= 0;
     collect_book.silver= 0;
     collect_book.bronze= 0;
     collect_book.epoch= shop.epoch;
+    transfer::transfer(
+        collect_book,
+        ctx.sender()
+    );
+}
+
+entry fun update_collect_book_version<T> (mut collect_book: Collect_Book, shop: &Game_Shop<T>, ctx: &TxContext) {
+    assert!(collect_book.version != shop.version);
+    collect_book.version= shop.version;
     transfer::transfer(
         collect_book,
         ctx.sender()

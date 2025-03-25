@@ -12,7 +12,7 @@ use suirandom::suirandom::{
     WinnerEvent
 };
 use sui::{
-    sui::SUI,
+    iota::IOTA,
     random::{Self, Random}, 
     test_scenario::{Self as ts, Scenario},
     coin::{Self, TreasuryCap, CoinMetadata, Coin},
@@ -439,7 +439,7 @@ public struct TsEnv {
 #[test_only]
 // Holds coins for different bridged tokens
 public struct Vault {
-    sui_coins: Coin<SUI>,
+    sui_coins: Coin<IOTA>,
     test_coins: Coin<SUIRANDOM_TESTS>,
 }
 
@@ -459,7 +459,7 @@ fun test_ts_env() : TsEnv{
     let mut clock = sui::clock::create_for_testing(ctx);
     random::create_for_testing(ctx);
     clock.set_for_testing(1_000_000_000);
-    let sui_coin = coin::zero<SUI>(ctx);
+    let sui_coin = coin::zero<IOTA>(ctx);
     let test_coin = coin::zero<SUIRANDOM_TESTS>(ctx);
     let vault = Vault {
         sui_coins: sui_coin,

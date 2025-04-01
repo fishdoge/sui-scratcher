@@ -11,6 +11,8 @@ Iota = { git = "https://github.com/iotaledger/iota.git", subdir = "crates/iota-f
 #usdc = { git = "https://github.com/circlefin/stablecoin-sui.git", subdir = "packages/usdc", rev = "8aca6be3599054438e4cae51dca1e238c0ad2656" }
 #pre_market = { git = "https://github.com/PinataBot/pinata-contract.git", subdir = "pre_market", rev = "main" }
 
+LiquidlinkProtocol = {local = "../protocol"}
+
 # For remote import, use the `{ git = "...", subdir = "...", rev = "..." }`.
 # Revision can be a branch, a tag, and a commit hash.
 # MyRemotePackage = { git = "https://some.remote/host.git", subdir = "remote/path", rev = "main" }

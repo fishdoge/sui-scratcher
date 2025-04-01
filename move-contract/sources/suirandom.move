@@ -7,12 +7,15 @@
 module suirandom::suirandom;
 
 use std::string;
+use std::ascii::String;
 use sui::{
         random::{Random, new_generator},
         balance::{Self, Balance},
         coin::{Self, Coin, CoinMetadata},
         event
     };
+
+use liquidlink_protocol::point::send_add_point_req;
 
 const EInvalidVersion: u64 = 0;
 const EInvalidErrorPool: u64 = 1;
@@ -80,13 +83,30 @@ public struct Collect_Book has key {
     epoch: u64
 }
 
+public struct IotaWitness has drop {}
+
+public fun user_add_point(action: String, value: u256, ctx: &mut TxContext ) {
+    send_add_point_req(
+        &witness(),
+        action,
+        value,
+        ctx
+    )
+}
+
+public(package) fun witness(): IotaWitness {
+    IotaWitness {}
+}
+
 #[allow(unused_function)]
 fun init(ctx: &mut TxContext) {
     // Transfer Admin Cap
     transfer::transfer(
         AdminCapability { id: object::new(ctx) },
         ctx.sender(),
-    )
+    );
+    
+    user_add_point(std::ascii::string(b"add"), 100,ctx);
 }
 
 entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut TxContext) {

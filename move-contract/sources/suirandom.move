@@ -58,6 +58,7 @@ public struct Game_Shop<phantom T> has key {
     timestamp: u64,
     epoch: u64,
     reward_pool: Balance<T>,
+    reward_team: Balance<T>,
     price: u64,
     count: u64,
     continue_set: bool,
@@ -86,7 +87,7 @@ fun init(ctx: &mut TxContext) {
     transfer::transfer(
         AdminCapability { id: object::new(ctx) },
         ctx.sender(),
-    )
+    );
 }
 
 entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut TxContext) {
@@ -104,6 +105,7 @@ entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut 
             timestamp: ctx.epoch_timestamp_ms(),
             epoch: 1,
             reward_pool: balance::zero<T>(),
+            reward_team: balance::zero<T>(),
             price: price,
             count: 0,
             continue_set: true,
@@ -142,6 +144,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
+        user_add_point(std::ascii::string(b"add"), 0,ctx);
     } else if (random_value <= 9385/*14%*/) {
         shop.epoch = shop.epoch + 0;
         collect_book.bronze = collect_book.bronze + 1;
@@ -154,6 +157,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
+        user_add_point(std::ascii::string(b"add"), 10,ctx);
     } else if (random_value <= 9985/*6%*/) {
         shop.epoch = shop.epoch + 0;
         collect_book.silver = collect_book.silver + 1;
@@ -166,6 +170,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
             winner: ctx.sender(),
             seed_number: random_value,
         });
+        user_add_point(std::ascii::string(b"add"), 20,ctx);
     } else if (random_value <= 9995/*0.1%*/) {
         shop.epoch = shop.epoch + 0;
         collect_book.gold = collect_book.gold + 1;
@@ -181,16 +186,19 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
     } else if (random_value <= 10000/*0.05*/){
         shop.epoch = shop.epoch + 1;
         collect_book.gold = collect_book.gold + 0;
-        let reward_value = shop.reward_pool.value();
+        let reward_value = shop.reward_pool.value() * 70 / 100;
+        let reward_team_value = shop.reward_pool.value() * 5 / 100;
         transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(reward_value * 7 /10), ctx),
+            coin::from_balance(shop.reward_pool.split(reward_value), ctx),
             ctx.sender(),
         );
+        shop.reward_team.join(shop.reward_pool.split(reward_team_value));
         event::emit(WinnerEvent {
             awards: string::utf8(b"epoch Off"),
             winner: ctx.sender(),
             seed_number: random_value,
         });
+        user_add_point(std::ascii::string(b"add"), 0,ctx);
     };
 
 }
@@ -216,11 +224,13 @@ entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Gam
     assert!(collect_book.epoch == shop.epoch, EInvalidOldCollectBook);
     
     // Avoid double borrow
-    let reward_value = shop.reward_pool.value();
+    let reward_value = shop.reward_pool.value() * 70 / 100;
+    let reward_team_value = shop.reward_pool.value() * 1 / 100;
     transfer::public_transfer(
-        coin::from_balance(shop.reward_pool.split(reward_value * 7 / 10), ctx),
+        coin::from_balance(shop.reward_pool.split(reward_value), ctx),
         ctx.sender(),
     );
+    shop.reward_team.join(shop.reward_pool.split(reward_team_value));
     // Refresh Collect Book
     collect_book.gold= 0;
     collect_book.silver= 0;
@@ -269,12 +279,15 @@ entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Sh
     shop.continue_set = true;
 }
 
-// entry fun start_epoch_when_gold_redeem<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &TxContext) {
-//     shop.count = 0;
-//     shop.timestamp = ctx.epoch_timestamp_ms();
-//     shop.epoch = shop.epoch + 1;
-//     shop.continue_set = true;
-// }
+/// Reward Team
+entry fun Reward_Team<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
+    let reward_team_value = shop.reward_team.value();
+
+    transfer::public_transfer(
+        coin::from_balance(shop.reward_team.split(reward_team_value), ctx),
+        ctx.sender(),
+    );
+}
 
 // Freeze Operator
 entry fun unfreeze_start_epoch<T> (_: &AdminCapability, shop: &mut Game_Shop<T>) {

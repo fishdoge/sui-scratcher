@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Trophy, Medal, Award, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCoin } from '@/context/CoinContext';
 
 interface LeaderboardPlayer {
   id: number;
@@ -18,6 +19,7 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ players, className }: LeaderboardProps) {
+  const coin = useCoin();
   // Sort players by number of plays (descending)
   const sortedPlayers = [...players].sort((a, b) => b.plays - a.plays);
 
@@ -105,7 +107,7 @@ export default function Leaderboard({ players, className }: LeaderboardProps) {
                     {player.plays} plays
                   </span>
                   <span>•</span>
-                  <span>{player.winnings} USDT won</span>
+                  <span>{player.winnings} {coin} won</span>
                 </div>
               </div>
 

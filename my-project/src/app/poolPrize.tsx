@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { cn } from '@/lib/utils';
+import { useCoin } from '@/context/CoinContext';
 
 interface PrizePoolProps {
   totalPool: number;
@@ -18,6 +19,7 @@ const client = new SuiClient({
 });
 export default function PoolPrize({ className }: PrizePoolProps) {
   const [poolUSDTBalance, setPoolUSDTBalance] = useState(0);
+  const { coin } = useCoin(); 
 
   useEffect(() => {
     async function getContractObjectUSDT() {
@@ -69,7 +71,7 @@ export default function PoolPrize({ className }: PrizePoolProps) {
               <div className="flex items-center gap-3">
                 <Coins className="h-8 w-8 text-yellow-500" />
                 <span className="text-4xl md:text-5xl font-bold text-purple-600">
-                  {poolUSDTBalance} USDT
+                  {poolUSDTBalance} {coin}
                 </span>
               </div>
               <p className="text-gray-600 mt-2">

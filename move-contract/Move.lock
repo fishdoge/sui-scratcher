@@ -2,10 +2,11 @@
 
 [move]
 version = 3
-manifest_digest = "7D6AC795CAAC8219E96A54EC5046202C463014A7E02174D551EEA72B9952DC6C"
-deps_digest = "F8BBB0CCB2491CA29A3DF03D6F92277A4F3574266507ACD77214D37ECA3F3082"
+manifest_digest = "0AEC23255D1552AF4388083C4FC5B5557936AB28962847D2BD8157734B5FFFEC"
+deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 dependencies = [
   { name = "Iota" },
+  { name = "LiquidlinkProtocol" },
 ]
 
 [[move.package]]
@@ -14,6 +15,14 @@ source = { git = "https://github.com/iotaledger/iota.git", rev = "testnet", subd
 
 dependencies = [
   { name = "MoveStdlib" },
+]
+
+[[move.package]]
+name = "LiquidlinkProtocol"
+source = { local = "../protocol" }
+
+dependencies = [
+  { name = "Iota" },
 ]
 
 [[move.package]]
@@ -29,8 +38,8 @@ flavor = "iota"
 
 [env.testnet]
 chain-id = "2304aa97"
-original-published-id = "0x857f001e617e16c304797c56cc5bd01e8f9d28fb504bd1fc4571f16231c6c797"
-latest-published-id = "0x857f001e617e16c304797c56cc5bd01e8f9d28fb504bd1fc4571f16231c6c797"
+original-published-id = "0x161854a9589fec5439832a491f974bd8716bc8cf585677496f1b0a0f178eb6aa"
+latest-published-id = "0x161854a9589fec5439832a491f974bd8716bc8cf585677496f1b0a0f178eb6aa"
 published-version = "1"
 
 [env.devnet]

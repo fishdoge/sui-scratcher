@@ -5,6 +5,7 @@ import { Sparkles, Trophy, ArrowLeft } from 'lucide-react';
 import Leaderboard from '@/components/leaderboard';
 import Link from 'next/link';
 import Footer from '../footer';
+import { useCoin } from '@/context/CoinContext';
 
 // Mock leaderboard data
 const leaderboardData = [
@@ -46,6 +47,7 @@ const leaderboardData = [
 ];
 
 export default function LeaderboardPage() {
+  const { coin } = useCoin();
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-blue-50">
       <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md border-b">
@@ -166,7 +168,7 @@ export default function LeaderboardPage() {
                 (sum, player) => sum + player.winnings,
                 0
               )}{' '}
-              USDT
+              {coin}
             </p>
             <p className="text-gray-600">paid out to players</p>
           </motion.div>

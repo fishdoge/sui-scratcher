@@ -11,7 +11,8 @@ use sui::{
         random::{Random, new_generator},
         balance::{Self, Balance},
         coin::{Self, Coin, CoinMetadata},
-        event
+        event,
+        bag::{Self, Bag}
     };
 
 const EInvalidVersion: u64 = 0;
@@ -21,6 +22,7 @@ const EInvalidBalance: u64 = 3;
 const EInvalidQualifications: u64 = 4;
 const EInvalidOldCollectBook: u64 = 5;
 
+// Controll Version
 const VERSION: u64 = 1;
 
 public enum A {
@@ -45,12 +47,20 @@ public struct AdminCapability has key {
     id: UID,
 }
 
+// Whitelist Coin
+public struct WhiteListCapability has key {
+    id: UID,
+    lists: Bag,
+    
+}
+
 //  Core of System.
 /*
     timestamp: record last epoch start time
     epoch: control round flow
     count: how many ticket is sold out
     continue_set: epoch round control flag
+    winners: 儲存中獎者地址的向量
 */
 public struct Game_Shop<phantom T> has key {
     id: UID,
@@ -62,6 +72,7 @@ public struct Game_Shop<phantom T> has key {
     price: u64,
     count: u64,
     continue_set: bool,
+    winners: vector<address>,  // 新增：儲存中獎者地址
 }
 
 //  Ticket for record packup result.
@@ -109,6 +120,7 @@ entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut 
             price: price,
             count: 0,
             continue_set: true,
+            winners: vector::empty(), // 初始化 winners 向量
         }
     );
 }
@@ -122,7 +134,6 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 
     // Take $5 from coin and put in the reward pool. Send back balance for sender.
     shop.reward_pool.join(coin.split(shop.price, ctx).into_balance());
-    transfer::public_transfer(coin, ctx.sender());
 
     // Counting packup and time.
     shop.count = shop.count +1;
@@ -135,71 +146,56 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
     if (random_value <= 7985/*79.85%*/) {
         shop.epoch = shop.epoch + 0;
         collect_book.bronze = collect_book.bronze + 0;
-        transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(0), ctx),
-            ctx.sender(),
-        );
+        coin.balance_mut().join(shop.reward_pool.split(0));
         event::emit(WinnerEvent {
             awards: string::utf8(b"None"),
             winner: ctx.sender(),
             seed_number: random_value,
         });
-        user_add_point(std::ascii::string(b"add"), 0,ctx);
     } else if (random_value <= 9385/*14%*/) {
         shop.epoch = shop.epoch + 0;
         collect_book.bronze = collect_book.bronze + 1;
-        transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(shop.price*2), ctx),
-            ctx.sender(),
-        );
+        coin.balance_mut().join(shop.reward_pool.split(shop.price*2));
         event::emit(WinnerEvent {
             awards: string::utf8(b"Bronze"),
             winner: ctx.sender(),
             seed_number: random_value,
         });
-        user_add_point(std::ascii::string(b"add"), 10,ctx);
     } else if (random_value <= 9985/*6%*/) {
         shop.epoch = shop.epoch + 0;
         collect_book.silver = collect_book.silver + 1;
-        transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(shop.price*4), ctx),
-            ctx.sender(),
-        );
+        coin.balance_mut().join(shop.reward_pool.split(shop.price*4));
         event::emit(WinnerEvent {
             awards: string::utf8(b"Silver"),
             winner: ctx.sender(),
             seed_number: random_value,
         });
-        user_add_point(std::ascii::string(b"add"), 20,ctx);
     } else if (random_value <= 9995/*0.1%*/) {
         shop.epoch = shop.epoch + 0;
         collect_book.gold = collect_book.gold + 1;
-        transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(0), ctx),
-            ctx.sender(),
-        );
+        coin.balance_mut().join(shop.reward_pool.split(0));
         event::emit(WinnerEvent {
             awards: string::utf8(b"Gold"),
             winner: ctx.sender(),
             seed_number: random_value,
         });
+        vector::push_back(&mut shop.winners, ctx.sender()); // 紀錄金獎得主
     } else if (random_value <= 10000/*0.05*/){
         shop.epoch = shop.epoch + 1;
         collect_book.gold = collect_book.gold + 0;
         let reward_value = shop.reward_pool.value() * 70 / 100;
         let reward_team_value = shop.reward_pool.value() * 5 / 100;
-        transfer::public_transfer(
-            coin::from_balance(shop.reward_pool.split(reward_value), ctx),
-            ctx.sender(),
-        );
+        coin.balance_mut().join(shop.reward_pool.split(reward_value));
         shop.reward_team.join(shop.reward_pool.split(reward_team_value));
         event::emit(WinnerEvent {
             awards: string::utf8(b"epoch Off"),
             winner: ctx.sender(),
             seed_number: random_value,
         });
-        user_add_point(std::ascii::string(b"add"), 0,ctx);
+        shop.winners = vector::empty(); // 清空中獎者名單
     };
+
+    transfer::public_transfer(coin, ctx.sender());
 
 }
 
@@ -236,6 +232,7 @@ entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Gam
     collect_book.silver= 0;
     collect_book.bronze= 0;
     collect_book.epoch= shop.epoch + 1;
+    shop.winners = vector::empty(); // 清空中獎者名單
 }
 
 entry fun deposit_reward_pool<T> (_: &AdminCapability, coin: Coin<T>, shop: &mut Game_Shop<T>) {
@@ -277,6 +274,7 @@ entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Sh
     shop.timestamp = ctx.epoch_timestamp_ms();
     shop.epoch = shop.epoch + 1;
     shop.continue_set = true;
+    shop.winners = vector::empty(); // 清空中獎者名單
 }
 
 /// Reward Team

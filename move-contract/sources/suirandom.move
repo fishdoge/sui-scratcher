@@ -6,7 +6,11 @@
 /// The probability of getting a gold, silver, or bronze NFT is 10%, 30%, and 60% respectively.
 module suirandom::suirandom;
 
-use std::string;
+use std::{
+        string,
+        type_name::Self,
+        debug
+    };
 use sui::{
         random::{Random, new_generator},
         balance::{Self, Balance},
@@ -51,7 +55,6 @@ public struct AdminCapability has key {
 public struct WhiteListCapability has key {
     id: UID,
     lists: Bag,
-    
 }
 
 //  Core of System.
@@ -98,6 +101,55 @@ fun init(ctx: &mut TxContext) {
     transfer::transfer(
         AdminCapability { id: object::new(ctx) },
         ctx.sender(),
+    );
+
+    // Create Whitelist Shared Object
+    // Whitelist Coin
+    transfer::share_object(
+        WhiteListCapability {
+            id: object::new(ctx),
+            lists: bag::new(ctx),
+        }
+    )
+}
+
+entry fun add_whitelist_coin<T>(_: &AdminCapability, whitelist: &mut WhiteListCapability, meta: &CoinMetadata<T>) {
+    whitelist.lists.add(type_name::get_with_original_ids<T>().into_string().into_bytes(), meta.get_decimals());
+}
+
+entry fun read_whitelist_coin<T>(whitelist: &WhiteListCapability): bool {
+    whitelist.lists.contains(type_name::get_with_original_ids<T>().into_string().into_bytes())
+}
+
+entry fun read_whitelist_coin_decimals<T>(whitelist: &WhiteListCapability): u8 {
+    let coin_type = type_name::get_with_original_ids<T>().into_string().into_bytes();
+    let value = bag::borrow<vector<u8>, u8>(&whitelist.lists, coin_type);
+    *value
+}
+
+    
+
+entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut TxContext) {
+    // Initial Shop
+    let mut decimals = read_whitelist_coin_decimals<T>(whitelist);
+    let mut price = 5;
+    while(decimals!=0){
+        price = price*10;
+        decimals = decimals - 1;
+    };
+    transfer::share_object(
+        Game_Shop {
+            id: object::new(ctx),
+            version: VERSION,
+            timestamp: ctx.epoch_timestamp_ms(),
+            epoch: 1,
+            reward_pool: balance::zero<T>(),
+            reward_team: balance::zero<T>(),
+            price: price,
+            count: 0,
+            continue_set: true,
+            winners: vector::empty(), // 初始化 winners 向量
+        }
     );
 }
 

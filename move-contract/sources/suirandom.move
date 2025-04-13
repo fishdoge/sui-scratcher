@@ -153,9 +153,9 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
     );
 }
 
-entry fun create_shop<T>(_: &AdminCapability, meta: &CoinMetadata<T>, ctx: &mut TxContext) {
+entry fun create_shop<T>(_: &AdminCapability, whitelist: &WhiteListCapability, ctx: &mut TxContext) {
     // Initial Shop
-    let mut decimals = meta.get_decimals();
+    let mut decimals = read_whitelist_coin_decimals<T>(whitelist);
     let mut price = 5;
     while(decimals!=0){
         price = price*10;

@@ -55,6 +55,7 @@ public struct AdminCapability has key {
 public struct WhiteListCapability has key {
     id: UID,
     lists: Bag,
+    create_flag: bool,
 }
 
 //  Core of System.
@@ -109,6 +110,7 @@ fun init(ctx: &mut TxContext) {
         WhiteListCapability {
             id: object::new(ctx),
             lists: bag::new(ctx),
+            create_flag: false,
         }
     )
 }
@@ -127,9 +129,14 @@ entry fun read_whitelist_coin_decimals<T>(whitelist: &WhiteListCapability): u8 {
     *value
 }
 
+entry fun whitelist_flag(_: &AdminCapability, whitelist: &mut WhiteListCapability) {
+    whitelist.create_flag = !whitelist.create_flag;
+}
     
 
 entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut TxContext) {
+    assert!(whitelist.create_flag == true, EInvalidVersion);
+    assert!(whitelist.read_whitelist_coin<T>() == true, EInvalidVersion);
     // Initial Shop
     let mut decimals = read_whitelist_coin_decimals<T>(whitelist);
     let mut price = 5;
@@ -154,6 +161,7 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
 }
 
 entry fun create_shop<T>(_: &AdminCapability, whitelist: &WhiteListCapability, ctx: &mut TxContext) {
+    assert!(whitelist.read_whitelist_coin<T>() == true, EInvalidVersion);
     // Initial Shop
     let mut decimals = read_whitelist_coin_decimals<T>(whitelist);
     let mut price = 5;

@@ -62,6 +62,63 @@ fun test_shop_create_flow() {
     let cap: suirandom::AdminCapability = ts.take_from_sender();
     let mut whitelist: suirandom::WhiteListCapability = ts.take_shared();
     cap.add_whitelist_coin<SUI_SCRATCHER_WHITELIST_TEST>(&mut whitelist, &meta);
+    cap.whitelist_flag(&mut whitelist);
+
+    // read coin type from whitelist
+    ts.next_tx(user[1]);
+    assert_eq(whitelist.read_whitelist_coin<SUI_SCRATCHER_WHITELIST_TEST>(), true);
+    assert_eq(!whitelist.read_whitelist_coin<SUI>(), true);
+    assert_eq(whitelist.read_whitelist_coin_decimals<SUI_SCRATCHER_WHITELIST_TEST>(), 6);
+
+    // create common pool by whitelist.
+    ts.next_tx(user[1]);
+    whitelist.create_shop_whitelist<SUI_SCRATCHER_WHITELIST_TEST>(ts.ctx());
+
+    ts.next_tx(user[1]);
+    let mut shop: suirandom::Game_Shop<SUI_SCRATCHER_WHITELIST_TEST> = ts.take_shared();
+
+
+    ts::return_shared(shop);
+    cap.destroy_cap();
+    destroy(meta);
+    destroy(_treasury);
+    ts::return_shared(whitelist);
+    ts::return_shared(random_state);
+    ts.end();
+}
+
+#[test, expected_failure]
+fun test_shop_create_flow_wl_false() {
+    let user: vector<address> = vector<address> [
+        @0x0,
+        @0x1
+    ];
+    let mut ts = ts::begin(user[0]);
+    // Setup CoinMeta
+    // let meta = coin::create_treasury_cap_for_testing<COIN_TESTS>(ts.ctx());
+    let otw = create_one_time_witness<SUI_SCRATCHER_WHITELIST_TEST>();
+    let (_treasury, meta) = test_env(otw, &mut ts);
+    // Setup randomness
+    random::create_for_testing(ts.ctx());
+    ts.next_tx(user[0]);
+    let mut random_state: Random = ts.take_shared();
+    random_state.update_randomness_state_for_testing(
+        0,
+        RANDOM_SEED,
+        ts.ctx(),
+    );
+    
+    // init Scratch package
+    ts.next_tx(user[1]);
+    suirandom::test_init(ts.ctx());
+
+    // add coin type to whitelist 
+    ts.next_tx(user[1]);
+    let cap: suirandom::AdminCapability = ts.take_from_sender();
+    let mut whitelist: suirandom::WhiteListCapability = ts.take_shared();
+    cap.add_whitelist_coin<SUI_SCRATCHER_WHITELIST_TEST>(&mut whitelist, &meta);
+    cap.whitelist_flag(&mut whitelist); // flag must be true
+    cap.whitelist_flag(&mut whitelist); // test turn off flag
 
     // read coin type from whitelist
     ts.next_tx(user[1]);

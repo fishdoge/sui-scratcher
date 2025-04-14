@@ -16,7 +16,8 @@ use sui::{
         balance::{Self, Balance},
         coin::{Self, Coin, CoinMetadata},
         event,
-        bag::{Self, Bag}
+        bag::{Self, Bag},
+        vec_set::{Self, VecSet},
     };
 
 const EInvalidVersion: u64 = 0;
@@ -54,7 +55,9 @@ public struct AdminCapability has key {
 // Whitelist Coin
 public struct WhiteListCapability has key {
     id: UID,
-    lists: Bag,
+    coin_lists: Bag,
+    game_lists: Bag,
+    change_lists: vector<u64>,
     create_flag: bool,
 }
 
@@ -77,6 +80,7 @@ public struct Game_Shop<phantom T> has key {
     count: u64,
     continue_set: bool,
     winners: vector<address>,  // 新增：儲存中獎者地址
+    range: VecSet<u64>,
 }
 
 //  Ticket for record packup result.
@@ -104,28 +108,41 @@ fun init(ctx: &mut TxContext) {
         ctx.sender(),
     );
 
+    let change_list = vector::empty<u64>();
+    change_list.push_back(10000); //0
+    change_list.push_back(2015); //1
+    change_list.push_back(1400); //2
+    change_list.push_back(600); //3
+    change_list.push_back(10); //4
+    change_list.push_back(5); //5
+
+    //let (_, x) = change_list.index_of(&10000);
+    let x = *change_list.borrow(0) -  *change_list.borrow(1) +  *change_list.borrow(2) +  *change_list.borrow(3) +  *change_list.borrow(4) +  *change_list.borrow(5);
+
     // Create Whitelist Shared Object
     // Whitelist Coin
     transfer::share_object(
         WhiteListCapability {
             id: object::new(ctx),
-            lists: bag::new(ctx),
+            coin_lists: bag::new(ctx),
+            game_lists: bag::new(ctx),
+            change_lists: change_list,
             create_flag: false,
         }
     )
 }
 
 entry fun add_whitelist_coin<T>(_: &AdminCapability, whitelist: &mut WhiteListCapability, meta: &CoinMetadata<T>) {
-    whitelist.lists.add(type_name::get_with_original_ids<T>().into_string().into_bytes(), meta.get_decimals());
+    whitelist.coin_lists.add(type_name::get_with_original_ids<T>().into_string().into_bytes(), meta.get_decimals());
 }
 
 entry fun read_whitelist_coin<T>(whitelist: &WhiteListCapability): bool {
-    whitelist.lists.contains(type_name::get_with_original_ids<T>().into_string().into_bytes())
+    whitelist.coin_lists.contains(type_name::get_with_original_ids<T>().into_string().into_bytes())
 }
 
 entry fun read_whitelist_coin_decimals<T>(whitelist: &WhiteListCapability): u8 {
     let coin_type = type_name::get_with_original_ids<T>().into_string().into_bytes();
-    let value = bag::borrow<vector<u8>, u8>(&whitelist.lists, coin_type);
+    let value = bag::borrow<vector<u8>, u8>(&whitelist.coin_lists, coin_type);
     *value
 }
 
@@ -144,6 +161,9 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
         price = price*10;
         decimals = decimals - 1;
     };
+    let range = vec_set::empty<u64>();
+    let x = whitelist.change_lists[0] - whitelist.change_lists[1] - whitelist.change_lists[2] - whitelist.change_lists[3] - whitelist.change_lists[4] - whitelist.change_lists[5];
+    range.insert(x);
     transfer::share_object(
         Game_Shop {
             id: object::new(ctx),
@@ -156,6 +176,7 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
             count: 0,
             continue_set: true,
             winners: vector::empty(), // 初始化 winners 向量
+            range: range,
         }
     );
 }

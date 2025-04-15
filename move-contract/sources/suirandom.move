@@ -135,7 +135,7 @@ entry fun whitelist_flag(_: &AdminCapability, whitelist: &mut WhiteListCapabilit
     whitelist.create_flag = !whitelist.create_flag;
 }
 
-entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut TxContext) {
+entry fun create_shop_whitelist<T>(whitelist: &mut WhiteListCapability, ctx: &mut TxContext) {
     assert!(whitelist.create_flag == true, EInvalidVersion);
     assert!(whitelist.read_whitelist_coin<T>() == true, EInvalidVersion);
     // Initial Shop
@@ -145,23 +145,28 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
         price = price*10;
         decimals = decimals - 1;
     };
+
+    let game = Game_Shop {
+        id: object::new(ctx),
+        version: VERSION,
+        timestamp: ctx.epoch_timestamp_ms(),
+        epoch: 1,
+        reward_pool: balance::zero<T>(),
+        reward_team: balance::zero<T>(),
+        price: price,
+        count: 0,
+        continue_set: true,
+        winners: vector::empty(), // 初始化 winners 向量
+    };
+
+    whitelist.game_lists.add(game.id.to_address(),type_name::get_with_original_ids<T>().into_string().into_bytes());
+
     transfer::share_object(
-        Game_Shop {
-            id: object::new(ctx),
-            version: VERSION,
-            timestamp: ctx.epoch_timestamp_ms(),
-            epoch: 1,
-            reward_pool: balance::zero<T>(),
-            reward_team: balance::zero<T>(),
-            price: price,
-            count: 0,
-            continue_set: true,
-            winners: vector::empty(), // 初始化 winners 向量
-        }
+        game
     );
 }
 
-entry fun create_shop<T>(_: &AdminCapability, whitelist: &WhiteListCapability, ctx: &mut TxContext) {
+entry fun create_shop<T>(_: &AdminCapability, whitelist: &mut WhiteListCapability, ctx: &mut TxContext) {
     assert!(whitelist.read_whitelist_coin<T>() == true, EInvalidVersion);
     // Initial Shop
     let mut decimals = read_whitelist_coin_decimals<T>(whitelist);
@@ -170,19 +175,24 @@ entry fun create_shop<T>(_: &AdminCapability, whitelist: &WhiteListCapability, c
         price = price*10;
         decimals = decimals - 1;
     };
+    
+    let game = Game_Shop {
+        id: object::new(ctx),
+        version: VERSION,
+        timestamp: ctx.epoch_timestamp_ms(),
+        epoch: 1,
+        reward_pool: balance::zero<T>(),
+        reward_team: balance::zero<T>(),
+        price: price,
+        count: 0,
+        continue_set: true,
+        winners: vector::empty(), // 初始化 winners 向量
+    };
+
+    whitelist.game_lists.add(game.id.to_address(),type_name::get_with_original_ids<T>().into_string().into_bytes());
+
     transfer::share_object(
-        Game_Shop {
-            id: object::new(ctx),
-            version: VERSION,
-            timestamp: ctx.epoch_timestamp_ms(),
-            epoch: 1,
-            reward_pool: balance::zero<T>(),
-            reward_team: balance::zero<T>(),
-            price: price,
-            count: 0,
-            continue_set: true,
-            winners: vector::empty(), // 初始化 winners 向量
-        }
+        game
     );
 }
 

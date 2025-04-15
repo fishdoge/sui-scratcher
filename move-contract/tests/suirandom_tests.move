@@ -99,6 +99,11 @@ fun test_shop_create_flow() {
     debug::print(&event::events_by_type<WinnerEvent>()[0].seed());
     assert_eq(event::events_by_type<WinnerEvent>().length(),shop.shop_count());
 
+    ts.next_tx(user[1]);
+    debug::print(&collectbook.is_winner<SUIRANDOM_TESTS>(ts.ctx()));
+    debug::print(&collectbook.is_winner<SUIRANDOM_TESTS>(ts.ctx()));
+    debug::print(&collectbook.is_winner<SUIRANDOM_TESTS>(ts.ctx()));
+    debug::print(&collectbook.is_winner<SUIRANDOM_TESTS>(ts.ctx()));
     
     /*
     let mut nfts = cap.mint(20, ts.ctx());

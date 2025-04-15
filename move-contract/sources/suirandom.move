@@ -17,7 +17,6 @@ use sui::{
         coin::{Self, Coin, CoinMetadata},
         event,
         bag::{Self, Bag},
-        vec_set::{Self, VecSet},
     };
 
 const EInvalidVersion: u64 = 0;
@@ -57,7 +56,6 @@ public struct WhiteListCapability has key {
     id: UID,
     coin_lists: Bag,
     game_lists: Bag,
-    change_lists: vector<u64>,
     create_flag: bool,
 }
 
@@ -80,7 +78,6 @@ public struct Game_Shop<phantom T> has key {
     count: u64,
     continue_set: bool,
     winners: vector<address>,  // 新增：儲存中獎者地址
-    range: VecSet<u64>,
 }
 
 //  Ticket for record packup result.
@@ -108,17 +105,6 @@ fun init(ctx: &mut TxContext) {
         ctx.sender(),
     );
 
-    let change_list = vector::empty<u64>();
-    change_list.push_back(10000); //0
-    change_list.push_back(2015); //1
-    change_list.push_back(1400); //2
-    change_list.push_back(600); //3
-    change_list.push_back(10); //4
-    change_list.push_back(5); //5
-
-    //let (_, x) = change_list.index_of(&10000);
-    let x = *change_list.borrow(0) -  *change_list.borrow(1) +  *change_list.borrow(2) +  *change_list.borrow(3) +  *change_list.borrow(4) +  *change_list.borrow(5);
-
     // Create Whitelist Shared Object
     // Whitelist Coin
     transfer::share_object(
@@ -126,7 +112,6 @@ fun init(ctx: &mut TxContext) {
             id: object::new(ctx),
             coin_lists: bag::new(ctx),
             game_lists: bag::new(ctx),
-            change_lists: change_list,
             create_flag: false,
         }
     )
@@ -149,7 +134,6 @@ entry fun read_whitelist_coin_decimals<T>(whitelist: &WhiteListCapability): u8 {
 entry fun whitelist_flag(_: &AdminCapability, whitelist: &mut WhiteListCapability) {
     whitelist.create_flag = !whitelist.create_flag;
 }
-    
 
 entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut TxContext) {
     assert!(whitelist.create_flag == true, EInvalidVersion);
@@ -161,9 +145,6 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
         price = price*10;
         decimals = decimals - 1;
     };
-    let range = vec_set::empty<u64>();
-    let x = whitelist.change_lists[0] - whitelist.change_lists[1] - whitelist.change_lists[2] - whitelist.change_lists[3] - whitelist.change_lists[4] - whitelist.change_lists[5];
-    range.insert(x);
     transfer::share_object(
         Game_Shop {
             id: object::new(ctx),
@@ -176,7 +157,6 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
             count: 0,
             continue_set: true,
             winners: vector::empty(), // 初始化 winners 向量
-            range: range,
         }
     );
 }
@@ -280,19 +260,9 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 
 }
 
-/*fun scratch<T> (collect_book: &mut Collect_Book, shop: &mut Game_Shop<T>, r: u64, ctx: &mut TxContext) {
-    shop.epoch = shop.epoch + 1;
-    collect_book.gold = collect_book.gold + 0;
-    transfer::public_transfer(
-        coin::from_balance(shop.reward_pool.split(0), ctx),
-        ctx.sender(),
-    );
-    event::emit(WinnerEvent {
-        awards: string::utf8(b"epoch Off"),
-        winner: ctx.sender(),
-        seed_number: r,
-    });
-}*/
+entry fun is_winner<T> (collect_book: &mut Collect_Book, ctx: &mut TxContext): bool {
+    !(collect_book.gold != 0)
+}
 
 entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
     assert!(object::id(shop) == collect_book.pool, EInvalidErrorPool);
@@ -327,6 +297,14 @@ entry fun withdraw_reward_pool<T> (_: &AdminCapability, shop: &mut Game_Shop<T>,
     );
 }
 
+/// Reward Team
+entry fun withdraw_team_pool<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
+    transfer::public_transfer(
+        coin::from_balance(shop.reward_team.withdraw_all(), ctx),
+        ctx.sender(),
+    );
+}
+
 entry fun set_price<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, price: u64) {
     shop.price = price;
 }
@@ -356,16 +334,6 @@ entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Sh
     shop.epoch = shop.epoch + 1;
     shop.continue_set = true;
     shop.winners = vector::empty(); // 清空中獎者名單
-}
-
-/// Reward Team
-entry fun Reward_Team<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
-    let reward_team_value = shop.reward_team.value();
-
-    transfer::public_transfer(
-        coin::from_balance(shop.reward_team.split(reward_team_value), ctx),
-        ctx.sender(),
-    );
 }
 
 // Freeze Operator

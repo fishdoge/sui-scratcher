@@ -271,7 +271,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 }
 
 entry fun is_winner<T> (collect_book: &mut Collect_Book, ctx: &mut TxContext): bool {
-    !(collect_book.gold != 0)
+    collect_book.gold != 0
 }
 
 entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
@@ -325,8 +325,8 @@ entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Sh
     
     // Avoid double borrow
     let reward_value = shop.reward_pool.value();
-    let winner_reward = reward_value * 7 / 10;
-    let project_reward = reward_value / 10;
+    let winner_reward = reward_value * 70 / 100;
+    let project_reward = reward_value / 100;
 
     // Winner Reward
     transfer::public_transfer(

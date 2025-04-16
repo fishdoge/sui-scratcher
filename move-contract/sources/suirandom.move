@@ -159,7 +159,7 @@ entry fun create_shop_whitelist<T>(whitelist: &mut WhiteListCapability, ctx: &mu
         winners: vector::empty(), // 初始化 winners 向量
     };
 
-    whitelist.game_lists.add(game.id.to_address(),type_name::get_with_original_ids<T>().into_string().into_bytes());
+    whitelist.game_lists.add(object::id(&game),type_name::get_with_original_ids<T>().into_string().into_bytes());
 
     transfer::share_object(
         game
@@ -189,7 +189,7 @@ entry fun create_shop<T>(_: &AdminCapability, whitelist: &mut WhiteListCapabilit
         winners: vector::empty(), // 初始化 winners 向量
     };
 
-    whitelist.game_lists.add(game.id.to_address(),type_name::get_with_original_ids<T>().into_string().into_bytes());
+    whitelist.game_lists.add(object::id(&game),type_name::get_with_original_ids<T>().into_string().into_bytes());
 
     transfer::share_object(
         game

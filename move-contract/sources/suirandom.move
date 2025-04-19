@@ -54,7 +54,9 @@ public struct AdminCapability has key {
 // Whitelist Coin
 public struct WhiteListCapability has key {
     id: UID,
-    lists: Bag,
+    coin_lists: vector<std::type_name::TypeName>,
+    coin_decimal_lists: Bag,
+    game_lists: vector<address>,
     create_flag: bool,
 }
 
@@ -109,23 +111,32 @@ fun init(ctx: &mut TxContext) {
     transfer::share_object(
         WhiteListCapability {
             id: object::new(ctx),
-            lists: bag::new(ctx),
+            coin_lists: vector::empty<std::type_name::TypeName>(),
+            coin_decimal_lists: bag::new(ctx),
+            game_lists: vector::empty<address>(),
             create_flag: false,
         }
     )
 }
 
 entry fun add_whitelist_coin<T>(_: &AdminCapability, whitelist: &mut WhiteListCapability, meta: &CoinMetadata<T>) {
-    whitelist.lists.add(type_name::get_with_original_ids<T>().into_string().into_bytes(), meta.get_decimals());
+    whitelist.coin_lists.push_back(type_name::get_with_original_ids<T>());
+    whitelist.coin_decimal_lists.add(type_name::get_with_original_ids<T>(), meta.get_decimals());
+}
+
+entry fun remove_whitelist_coin<T>(_: &AdminCapability, whitelist: &mut WhiteListCapability, meta: &CoinMetadata<T>) {
+    let (_,a) = whitelist.coin_lists.index_of(&type_name::get_with_original_ids<T>());
+    whitelist.coin_lists.remove(a);
+    whitelist.coin_decimal_lists.add(type_name::get_with_original_ids<T>(), meta.get_decimals());
 }
 
 entry fun read_whitelist_coin<T>(whitelist: &WhiteListCapability): bool {
-    whitelist.lists.contains(type_name::get_with_original_ids<T>().into_string().into_bytes())
+    whitelist.coin_lists.contains(&type_name::get_with_original_ids<T>())
 }
 
 entry fun read_whitelist_coin_decimals<T>(whitelist: &WhiteListCapability): u8 {
-    let coin_type = type_name::get_with_original_ids<T>().into_string().into_bytes();
-    let value = bag::borrow<vector<u8>, u8>(&whitelist.lists, coin_type);
+    let coin_type = type_name::get_with_original_ids<T>();
+    let value = bag::borrow<std::type_name::TypeName, u8>(&whitelist.coin_decimal_lists, coin_type);
     *value
 }
 
@@ -141,22 +152,27 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
     let mut decimals = read_whitelist_coin_decimals<T>(whitelist);
     let mut price = 5;
     while(decimals!=0){
-        price = price*10;
+        price = price * 10;
         decimals = decimals - 1;
     };
+
+    let game = Game_Shop {
+        id: object::new(ctx),
+        version: VERSION,
+        timestamp: ctx.epoch_timestamp_ms(),
+        epoch: 1,
+        reward_pool: balance::zero<T>(),
+        reward_team: balance::zero<T>(),
+        price: price,
+        count: 0,
+        continue_set: true,
+        winners: vector::empty(), // 初始化 winners 向量
+    };
+
+    whitelist.game_lists.push_back(object::id(&game).to_address());
+
     transfer::share_object(
-        Game_Shop {
-            id: object::new(ctx),
-            version: VERSION,
-            timestamp: ctx.epoch_timestamp_ms(),
-            epoch: 1,
-            reward_pool: balance::zero<T>(),
-            reward_team: balance::zero<T>(),
-            price: price,
-            count: 0,
-            continue_set: true,
-            winners: vector::empty(), // 初始化 winners 向量
-        }
+        game
     );
 }
 
@@ -169,19 +185,24 @@ entry fun create_shop<T>(_: &AdminCapability, whitelist: &WhiteListCapability, c
         price = price*10;
         decimals = decimals - 1;
     };
+    
+    let game = Game_Shop {
+        id: object::new(ctx),
+        version: VERSION,
+        timestamp: ctx.epoch_timestamp_ms(),
+        epoch: 1,
+        reward_pool: balance::zero<T>(),
+        reward_team: balance::zero<T>(),
+        price: price,
+        count: 0,
+        continue_set: true,
+        winners: vector::empty(), // 初始化 winners 向量
+    };
+
+    whitelist.game_lists.push_back(object::id(&game).to_address());
+
     transfer::share_object(
-        Game_Shop {
-            id: object::new(ctx),
-            version: VERSION,
-            timestamp: ctx.epoch_timestamp_ms(),
-            epoch: 1,
-            reward_pool: balance::zero<T>(),
-            reward_team: balance::zero<T>(),
-            price: price,
-            count: 0,
-            continue_set: true,
-            winners: vector::empty(), // 初始化 winners 向量
-        }
+        game
     );
 }
 
@@ -259,19 +280,9 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 
 }
 
-/*fun scratch<T> (collect_book: &mut Collect_Book, shop: &mut Game_Shop<T>, r: u64, ctx: &mut TxContext) {
-    shop.epoch = shop.epoch + 1;
-    collect_book.gold = collect_book.gold + 0;
-    transfer::public_transfer(
-        coin::from_balance(shop.reward_pool.split(0), ctx),
-        ctx.sender(),
-    );
-    event::emit(WinnerEvent {
-        awards: string::utf8(b"epoch Off"),
-        winner: ctx.sender(),
-        seed_number: r,
-    });
-}*/
+entry fun is_winner (collect_book: &Collect_Book): bool {
+    collect_book.gold != 0
+}
 
 entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
     assert!(object::id(shop) == collect_book.pool, EInvalidErrorPool);
@@ -295,7 +306,7 @@ entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Gam
     shop.winners = vector::empty(); // 清空中獎者名單
 }
 
-entry fun deposit_reward_pool<T> (_: &AdminCapability, coin: Coin<T>, shop: &mut Game_Shop<T>) {
+entry fun deposit_reward_pool<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, coin: Coin<T>) {
     shop.reward_pool.join(coin.into_balance());
 }
 

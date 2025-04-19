@@ -65,7 +65,7 @@ fun test_shop_create_flow() {
     // create shop
     ts.next_tx(user[1]);
     //let meta: coin::CoinMetadata<COIN_TESTS> = ts.take_shared();
-    cap.create_shop<SUIRANDOM_TESTS>(&whitelist, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // set_price
     ts.next_tx(user[1]);
@@ -77,7 +77,7 @@ fun test_shop_create_flow() {
     // deposit_reward_pool
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(&mut shop, c);
 
     // start_new_collect_book
     ts.next_tx(user[1]);
@@ -99,6 +99,11 @@ fun test_shop_create_flow() {
     debug::print(&event::events_by_type<WinnerEvent>()[0].seed());
     assert_eq(event::events_by_type<WinnerEvent>().length(),shop.shop_count());
 
+    ts.next_tx(user[1]);
+    debug::print(&collectbook.is_winner());
+    debug::print(&collectbook.is_winner());
+    debug::print(&collectbook.is_winner());
+    debug::print(&collectbook.is_winner());
     
     /*
     let mut nfts = cap.mint(20, ts.ctx());
@@ -168,11 +173,11 @@ fun test_cross_shop_get_reward() {
 
     // create shop 1
     ts.next_tx(user[1]);
-    cap.create_shop<SUIRANDOM_TESTS>(&whitelist, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // create shop 2
     ts.next_tx(user[1]);
-    cap.create_shop<SUIRANDOM_TESTS>(&whitelist, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // set_price
     ts.next_tx(user[1]);
@@ -190,10 +195,10 @@ fun test_cross_shop_get_reward() {
     // deposit_reward_pool
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop1.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop1);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(&mut shop1, c);
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop2.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop2);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(&mut shop2, c);
 
     // start_new_collect_book -> shop1
     ts.next_tx(user[1]);
@@ -290,11 +295,11 @@ fun test_long_run_shop_get_reward() {
 
     // create shop 1
     ts.next_tx(user[1]);
-    cap.create_shop<SUIRANDOM_TESTS>(&whitelist, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // create shop 2
     ts.next_tx(user[1]);
-    cap.create_shop<SUIRANDOM_TESTS>(&whitelist, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // set_price
     ts.next_tx(user[1]);
@@ -312,10 +317,10 @@ fun test_long_run_shop_get_reward() {
     // deposit_reward_pool
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop1.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop1);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>( &mut shop1, c);
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop2.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop2);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>( &mut shop2, c);
 
     // start_new_collect_book -> shop1
     ts.next_tx(user[1]);
@@ -525,7 +530,7 @@ fun test_shop_create_flow_new() {
 
     // create shop
     ts.next_tx(user[1]);
-    cap.create_shop<SUIRANDOM_TESTS>(&whitelist, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // set_price
     ts.next_tx(user[1]);
@@ -537,7 +542,7 @@ fun test_shop_create_flow_new() {
     // deposit_reward_pool
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(&mut shop, c);
 
     // start_new_collect_book
     ts.next_tx(user[1]);

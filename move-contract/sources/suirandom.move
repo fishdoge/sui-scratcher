@@ -54,8 +54,9 @@ public struct AdminCapability has key {
 // Whitelist Coin
 public struct WhiteListCapability has key {
     id: UID,
-    coin_lists: Bag,
-    game_lists: Bag,
+    coin_lists: vector<std::type_name::TypeName>,
+    coin_decimal_lists: Bag,
+    game_lists: vector<address>,
     create_flag: bool,
 }
 
@@ -110,24 +111,32 @@ fun init(ctx: &mut TxContext) {
     transfer::share_object(
         WhiteListCapability {
             id: object::new(ctx),
-            coin_lists: bag::new(ctx),
-            game_lists: bag::new(ctx),
+            coin_lists: vector::empty<std::type_name::TypeName>(),
+            coin_decimal_lists: bag::new(ctx),
+            game_lists: vector::empty<address>(),
             create_flag: false,
         }
     )
 }
 
 entry fun add_whitelist_coin<T>(_: &AdminCapability, whitelist: &mut WhiteListCapability, meta: &CoinMetadata<T>) {
-    whitelist.coin_lists.add(type_name::get_with_original_ids<T>().into_string().into_bytes(), meta.get_decimals());
+    whitelist.coin_lists.push_back(type_name::get_with_original_ids<T>());
+    whitelist.coin_decimal_lists.add(type_name::get_with_original_ids<T>(), meta.get_decimals());
+}
+
+entry fun remove_whitelist_coin<T>(_: &AdminCapability, whitelist: &mut WhiteListCapability, meta: &CoinMetadata<T>) {
+    let (_,a) = whitelist.coin_lists.index_of(&type_name::get_with_original_ids<T>());
+    whitelist.coin_lists.remove(a);
+    whitelist.coin_decimal_lists.add(type_name::get_with_original_ids<T>(), meta.get_decimals());
 }
 
 entry fun read_whitelist_coin<T>(whitelist: &WhiteListCapability): bool {
-    whitelist.coin_lists.contains(type_name::get_with_original_ids<T>().into_string().into_bytes())
+    whitelist.coin_lists.contains(&type_name::get_with_original_ids<T>())
 }
 
 entry fun read_whitelist_coin_decimals<T>(whitelist: &WhiteListCapability): u8 {
-    let coin_type = type_name::get_with_original_ids<T>().into_string().into_bytes();
-    let value = bag::borrow<vector<u8>, u8>(&whitelist.coin_lists, coin_type);
+    let coin_type = type_name::get_with_original_ids<T>();
+    let value = bag::borrow<std::type_name::TypeName, u8>(&whitelist.coin_decimal_lists, coin_type);
     *value
 }
 
@@ -142,7 +151,7 @@ entry fun create_shop_whitelist<T>(whitelist: &mut WhiteListCapability, ctx: &mu
     let mut decimals = read_whitelist_coin_decimals<T>(whitelist);
     let mut price = 5;
     while(decimals!=0){
-        price = price*10;
+        price = price * 10;
         decimals = decimals - 1;
     };
 
@@ -159,7 +168,7 @@ entry fun create_shop_whitelist<T>(whitelist: &mut WhiteListCapability, ctx: &mu
         winners: vector::empty(), // 初始化 winners 向量
     };
 
-    whitelist.game_lists.add(object::id(&game),type_name::get_with_original_ids<T>().into_string().into_bytes());
+    whitelist.game_lists.push_back(object::id(&game).to_address());
 
     transfer::share_object(
         game
@@ -189,7 +198,7 @@ entry fun create_shop<T>(_: &AdminCapability, whitelist: &mut WhiteListCapabilit
         winners: vector::empty(), // 初始化 winners 向量
     };
 
-    whitelist.game_lists.add(object::id(&game),type_name::get_with_original_ids<T>().into_string().into_bytes());
+    whitelist.game_lists.push_back(object::id(&game).to_address());
 
     transfer::share_object(
         game
@@ -270,7 +279,7 @@ entry fun packup<T> (collect_book: &mut Collect_Book, mut coin: Coin<T>, shop: &
 
 }
 
-entry fun is_winner<T> (collect_book: &mut Collect_Book, ctx: &mut TxContext): bool {
+entry fun is_winner (collect_book: &Collect_Book): bool {
     collect_book.gold != 0
 }
 
@@ -296,7 +305,7 @@ entry fun winner_take_reward<T> (collect_book: &mut Collect_Book, shop: &mut Gam
     shop.winners = vector::empty(); // 清空中獎者名單
 }
 
-entry fun deposit_reward_pool<T> (_: &AdminCapability, coin: Coin<T>, shop: &mut Game_Shop<T>) {
+entry fun deposit_reward_pool<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, coin: Coin<T>) {
     shop.reward_pool.join(coin.into_balance());
 }
 

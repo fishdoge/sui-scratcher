@@ -16,7 +16,7 @@ use sui::{
         balance::{Self, Balance},
         coin::{Self, Coin, CoinMetadata},
         event,
-        bag::{Self, Bag}
+        bag::{Self, Bag},
     };
 
 const EInvalidVersion: u64 = 0;
@@ -143,9 +143,8 @@ entry fun read_whitelist_coin_decimals<T>(whitelist: &WhiteListCapability): u8 {
 entry fun whitelist_flag(_: &AdminCapability, whitelist: &mut WhiteListCapability) {
     whitelist.create_flag = !whitelist.create_flag;
 }
-    
 
-entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut TxContext) {
+entry fun create_shop_whitelist<T>(whitelist: &mut WhiteListCapability, ctx: &mut TxContext) {
     assert!(whitelist.create_flag == true, EInvalidVersion);
     assert!(whitelist.read_whitelist_coin<T>() == true, EInvalidVersion);
     // Initial Shop
@@ -176,7 +175,7 @@ entry fun create_shop_whitelist<T>(whitelist: &WhiteListCapability, ctx: &mut Tx
     );
 }
 
-entry fun create_shop<T>(_: &AdminCapability, whitelist: &WhiteListCapability, ctx: &mut TxContext) {
+entry fun create_shop<T>(_: &AdminCapability, whitelist: &mut WhiteListCapability, ctx: &mut TxContext) {
     assert!(whitelist.read_whitelist_coin<T>() == true, EInvalidVersion);
     // Initial Shop
     let mut decimals = read_whitelist_coin_decimals<T>(whitelist);
@@ -317,6 +316,14 @@ entry fun withdraw_reward_pool<T> (_: &AdminCapability, shop: &mut Game_Shop<T>,
     );
 }
 
+/// Reward Team
+entry fun withdraw_team_pool<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
+    transfer::public_transfer(
+        coin::from_balance(shop.reward_team.withdraw_all(), ctx),
+        ctx.sender(),
+    );
+}
+
 entry fun set_price<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, price: u64) {
     shop.price = price;
 }
@@ -327,8 +334,8 @@ entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Sh
     
     // Avoid double borrow
     let reward_value = shop.reward_pool.value();
-    let winner_reward = reward_value * 7 / 10;
-    let project_reward = reward_value / 10;
+    let winner_reward = reward_value * 70 / 100;
+    let project_reward = reward_value / 100;
 
     // Winner Reward
     transfer::public_transfer(
@@ -346,16 +353,6 @@ entry fun start_epoch_when_epoch_off<T> (_: &AdminCapability, shop: &mut Game_Sh
     shop.epoch = shop.epoch + 1;
     shop.continue_set = true;
     shop.winners = vector::empty(); // 清空中獎者名單
-}
-
-/// Reward Team
-entry fun Reward_Team<T> (_: &AdminCapability, shop: &mut Game_Shop<T>, ctx: &mut TxContext) {
-    let reward_team_value = shop.reward_team.value();
-
-    transfer::public_transfer(
-        coin::from_balance(shop.reward_team.split(reward_team_value), ctx),
-        ctx.sender(),
-    );
 }
 
 // Freeze Operator

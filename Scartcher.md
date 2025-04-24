@@ -92,3 +92,24 @@ sui client call \
 --args \
 0x7b7ad7dd9cd4e8c538d04ce066897170b9bd68ba29d85d524f2457d89cceaf87 \
 --dry-run
+
+
+
+sui client call \
+--package 0xd8cc41b8b844a4dc88015918d1bfd3b5ec202c7f86052580d3cd509bfab9292a \
+--module suirandom \
+--function refresh_collect_book \
+--type-args "0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT" \
+--args \
+0xc9893c6fef5e12fdd2d8f0909ee5ec99f8572fbff4f21f2ac91cc7ce97e1b2c0 \
+0x6c95c45406f8207d4437ab3d15e1801fc239ce7b64457680f30b348d03618404
+
+
+sui client call \
+--package 0xd8cc41b8b844a4dc88015918d1bfd3b5ec202c7f86052580d3cd509bfab9292a \
+--module suirandom \
+--function withdraw_team_pool \
+--type-args "0x0588cff9a50e0eaf4cd50d337c1a36570bc1517793fd3303e1513e8ad4d2aa96::usdt::USDT" \
+--args \
+0xc9893c6fef5e12fdd2d8f0909ee5ec99f8572fbff4f21f2ac91cc7ce97e1b2c0 \
+0x6c95c45406f8207d4437ab3d15e1801fc239ce7b64457680f30b348d03618404

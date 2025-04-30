@@ -56,11 +56,16 @@ fun test_shop_create_flow() {
     ts.next_tx(user[1]);
     suirandom::test_init(ts.ctx());
 
-    // create shop
+    // add coin type to whitelist 
     ts.next_tx(user[1]);
     let cap: suirandom::AdminCapability = ts.take_from_sender();
+    let mut whitelist: suirandom::WhiteListCapability = ts.take_shared();
+    cap.add_whitelist_coin<SUIRANDOM_TESTS>(&mut whitelist, &meta);
+
+    // create shop
+    ts.next_tx(user[1]);
     //let meta: coin::CoinMetadata<COIN_TESTS> = ts.take_shared();
-    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // set_price
     ts.next_tx(user[1]);
@@ -72,7 +77,7 @@ fun test_shop_create_flow() {
     // deposit_reward_pool
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(&mut shop, c);
 
     // start_new_collect_book
     ts.next_tx(user[1]);
@@ -94,6 +99,11 @@ fun test_shop_create_flow() {
     debug::print(&event::events_by_type<WinnerEvent>()[0].seed());
     assert_eq(event::events_by_type<WinnerEvent>().length(),shop.shop_count());
 
+    ts.next_tx(user[1]);
+    debug::print(&collectbook.is_winner());
+    debug::print(&collectbook.is_winner());
+    debug::print(&collectbook.is_winner());
+    debug::print(&collectbook.is_winner());
     
     /*
     let mut nfts = cap.mint(20, ts.ctx());
@@ -126,6 +136,7 @@ fun test_shop_create_flow() {
     destroy(meta);
     destroy(_treasury);
     ts::return_shared(shop);
+    ts::return_shared(whitelist);
     ts::return_shared(random_state);
     ts.end();
 }
@@ -154,14 +165,19 @@ fun test_cross_shop_get_reward() {
     ts.next_tx(user[1]);
     suirandom::test_init(ts.ctx());
 
-    // create shop 1
+    // add coin type to whitelist 
     ts.next_tx(user[1]);
     let cap: suirandom::AdminCapability = ts.take_from_sender();
-    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
+    let mut whitelist: suirandom::WhiteListCapability = ts.take_shared();
+    cap.add_whitelist_coin<SUIRANDOM_TESTS>(&mut whitelist, &meta);
+
+    // create shop 1
+    ts.next_tx(user[1]);
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // create shop 2
     ts.next_tx(user[1]);
-    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // set_price
     ts.next_tx(user[1]);
@@ -179,10 +195,10 @@ fun test_cross_shop_get_reward() {
     // deposit_reward_pool
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop1.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop1);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(&mut shop1, c);
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop2.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop2);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(&mut shop2, c);
 
     // start_new_collect_book -> shop1
     ts.next_tx(user[1]);
@@ -242,6 +258,7 @@ fun test_cross_shop_get_reward() {
     destroy(_treasury);
     ts::return_shared(shop1);
     ts::return_shared(shop2);
+    ts::return_shared(whitelist);
     ts::return_shared(random_state);
     ts.end();
 }
@@ -270,14 +287,19 @@ fun test_long_run_shop_get_reward() {
     ts.next_tx(user[1]);
     suirandom::test_init(ts.ctx());
 
-    // create shop 1
+    // add coin type to whitelist 
     ts.next_tx(user[1]);
     let cap: suirandom::AdminCapability = ts.take_from_sender();
-    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
+    let mut whitelist: suirandom::WhiteListCapability = ts.take_shared();
+    cap.add_whitelist_coin<SUIRANDOM_TESTS>(&mut whitelist, &meta);
+
+    // create shop 1
+    ts.next_tx(user[1]);
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // create shop 2
     ts.next_tx(user[1]);
-    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // set_price
     ts.next_tx(user[1]);
@@ -295,10 +317,10 @@ fun test_long_run_shop_get_reward() {
     // deposit_reward_pool
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop1.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop1);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>( &mut shop1, c);
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop2.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop2);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>( &mut shop2, c);
 
     // start_new_collect_book -> shop1
     ts.next_tx(user[1]);
@@ -358,6 +380,7 @@ fun test_long_run_shop_get_reward() {
     destroy(_treasury);
     ts::return_shared(shop1);
     ts::return_shared(shop2);
+    ts::return_shared(whitelist);
     ts::return_shared(random_state);
     ts.end();
 }
@@ -499,11 +522,15 @@ fun test_shop_create_flow_new() {
     ts.next_tx(user[1]);
     suirandom::test_init(ts.ctx());
 
-    // create shop
+    // add coin type to whitelist 
     ts.next_tx(user[1]);
     let cap: suirandom::AdminCapability = ts.take_from_sender();
-    //let meta: coin::CoinMetadata<COIN_TESTS> = ts.take_shared();
-    cap.create_shop<SUIRANDOM_TESTS>(&meta, ts.ctx());
+    let mut whitelist: suirandom::WhiteListCapability = ts.take_shared();
+    cap.add_whitelist_coin<SUIRANDOM_TESTS>(&mut whitelist, &meta);
+
+    // create shop
+    ts.next_tx(user[1]);
+    cap.create_shop<SUIRANDOM_TESTS>(&mut whitelist, ts.ctx());
 
     // set_price
     ts.next_tx(user[1]);
@@ -515,7 +542,7 @@ fun test_shop_create_flow_new() {
     // deposit_reward_pool
     ts.next_tx(user[1]);
     let c = coin::mint_for_testing<SUIRANDOM_TESTS>(shop.shop_price() * Deposit_Deep ,ts.ctx());
-    cap.deposit_reward_pool<SUIRANDOM_TESTS>(c, &mut shop);
+    cap.deposit_reward_pool<SUIRANDOM_TESTS>(&mut shop, c);
 
     // start_new_collect_book
     ts.next_tx(user[1]);
@@ -572,6 +599,7 @@ fun test_shop_create_flow_new() {
     ts::return_shared(random_state);
     //ts.end();
     env.destroy_env();
+    ts::return_shared(whitelist);
 }
 
 public fun destroy_env(env: TsEnv) {

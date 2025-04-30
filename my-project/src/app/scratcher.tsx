@@ -37,6 +37,7 @@ import {
 } from '@/chainConfig';
 import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { graphql } from '@mysten/sui/graphql/schemas/latest';
+import { useCoin } from '@/context/CoinContext';
 
 interface historyType {
   id: number;
@@ -70,6 +71,7 @@ export default function Scratcher() {
   const [userOwnObjects, setUserObjects] = useState<userObject | null>();
 
   const newGameState = useRef<string>('');
+  const { coin } = useCoin();
 
   useEffect(() => {
     const getUserObjectLog = async () => {
@@ -315,7 +317,6 @@ export default function Scratcher() {
         );
     }
   };
-
   const scartch = async () => {
     console.log('scartch')
     const digestDigest: string = await playSuiScratcher();
@@ -380,7 +381,7 @@ export default function Scratcher() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          Each ticket costs 5 USDT. Try your luck now!
+          Each ticket costs 5 {coin}. Try your luck now!
         </motion.p>
       </div>
 
@@ -397,7 +398,7 @@ export default function Scratcher() {
             <h3 className="font-semibold text-gray-800">Initial Pool Size</h3>
           </div>
           <p className="text-2xl font-bold text-purple-600">
-            {poolInfo.totalPool} USDT
+            {poolInfo.totalPool} {coin}
           </p>
         </motion.div>
 
@@ -486,7 +487,7 @@ export default function Scratcher() {
                     <div>
                       <p className="text-sm text-gray-500">Your Balance</p>
                       <p className="font-semibold text-gray-800">
-                        {userUsdtBalance + ' '} USDT
+                        {userUsdtBalance + ' '} {coin}
                       </p>
                     </div>
                   </div>
@@ -545,7 +546,7 @@ export default function Scratcher() {
                 className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
                 onClick={getFreeUsdt}
               >
-                Get test USDT token
+                Get test {coin} token
               </Button>
             </div>
           </motion.div>
@@ -585,7 +586,7 @@ export default function Scratcher() {
                         <p
                           className={`font-medium text-sm ${item.prize === 'None' ? 'text-red-600' : 'text-green-600'}`}
                         >
-                          {item.gain + ' '}USDT
+                          {item.gain + ' '} {coin}
                         </p>
                       </div>
                     </div>
@@ -609,7 +610,7 @@ export default function Scratcher() {
             <AccordionItem value="item-1">
               <AccordionTrigger>1. Initial Setup</AccordionTrigger>
               <AccordionContent>
-                When the Lottery first launches, the house will deposit 100 USDT
+                When the Lottery first launches, the house will deposit 100 {coin}
                 into the prize pool.
               </AccordionContent>
             </AccordionItem>
@@ -621,7 +622,7 @@ export default function Scratcher() {
               <AccordionContent>
                 <ul className="list-disc pl-4 space-y-2">
                   <li>
-                    Each Lottery ticket costs 5 USDT, and players can purchase
+                    Each Lottery ticket costs 5 {coin}, and players can purchase
                     unlimited tickets.
                   </li>
                   <li>
@@ -637,8 +638,8 @@ export default function Scratcher() {
               <AccordionTrigger>3. Prize Structure</AccordionTrigger>
               <AccordionContent>
                 <ul className="list-disc pl-4 space-y-2">
-                  <li>14% chance to win 10 USDT (Regular Prize)</li>
-                  <li>6% chance to win 20 USDT (Special Prize)</li>
+                  <li>14% chance to win 10 {coin} (Regular Prize)</li>
+                  <li>6% chance to win 20 {coin} (Special Prize)</li>
                   <li>
                     1% chance to win the Jackpot:
                     <ul className="list-disc pl-4 mt-2">
@@ -691,7 +692,7 @@ export default function Scratcher() {
               <AccordionContent>
                 If the prize pool is depleted by regular and special prizes
                 without any jackpot or termination prize being drawn, the
-                project will inject an additional 100 USDT to maintain game
+                project will inject an additional 100 {coin} to maintain game
                 operation.
               </AccordionContent>
             </AccordionItem>

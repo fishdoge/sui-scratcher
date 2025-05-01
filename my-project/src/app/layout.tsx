@@ -30,9 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CollectBookAuthProvider>
-          <CoinProvider>
-            {children}
-          </CoinProvider>
+          <CoinProvider>{children}</CoinProvider>
         </CollectBookAuthProvider>
       </body>
     </html>

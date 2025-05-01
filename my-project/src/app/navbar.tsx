@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image'
+import Image from 'next/image';
 
 import {
   SuiTransactionBlockResponse,
@@ -198,11 +198,11 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             {/* <Sparkles className="h-6 w-6 text-purple-600" /> */}
             <Image
-      src="/sui-slogo.png"
-      width={46}
-      height={46}
-      alt="Picture of the author"
-    />
+              src="/sui-slogo.png"
+              width={46}
+              height={46}
+              alt="Picture of the author"
+            />
             <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Sui Scratcher
             </span>

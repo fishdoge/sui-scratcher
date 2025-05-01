@@ -9,7 +9,6 @@ import { AuthProvider } from '@/app/context/authContext';
 import dynamic from 'next/dynamic';
 import CoinInitializer from '@/components/CoinInitializer';
 
-
 const WalletProvider = dynamic(
   () => import('@mysten/dapp-kit').then((mod) => mod.WalletProvider),
   {
@@ -32,7 +31,7 @@ export default function Page() {
       <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
         <WalletProvider>
           <AuthProvider>
-            <CoinInitializer/>
+            <CoinInitializer />
             <Site />
           </AuthProvider>
         </WalletProvider>

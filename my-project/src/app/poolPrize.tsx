@@ -51,9 +51,11 @@ export default function PoolPrize({ className }: PrizePoolProps) {
   });
 
   useEffect(() => {
-    console.log('collectBookState from context', collectBookState);
 
     const showCollectBook = async () => {
+      if (collectBookState == '') return;
+      console.log('collectBookState from context', collectBookState);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const txn: any = await client.getObject({
         id: collectBookState,

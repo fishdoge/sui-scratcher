@@ -1,109 +1,106 @@
-### **Sui Scratcher 企劃書**
+Sui Scratcher Proposal
+I. Game Overview
+Game Title: Blockchain Scratch Lottery (Sui Scratcher)
 
----
+Game Type: Scratch card-style game
 
-### **一、遊戲概述**
+Platform: Blockchain DApp
 
-**遊戲名稱：** 隨機大獎玩家（Blockchain Scratch Lottery）
+Number of Players: Unlimited; open to global participants
 
-**遊戲類型：** 類似於刮刮樂遊戲
+Game Concept:
 
-**平台：** 區塊鏈 DApp
+This game is a blockchain-based lottery called Sui Scratcher, which combines a traditional jackpot mechanism with a “termination reward” protocol. Players can purchase an unlimited number of lottery tickets. Each ticket reveals its result instantly. If a player wins a jackpot, they must choose the right timing to redeem it—failing to do so before the termination event results in forfeiting the prize.
 
-**玩家人數：** 無限，全球玩家均可參與
+II. Gameplay Instructions
+1. Initial Setup:
 
-**遊戲概念：**
+The banker injects 1000 USDT into the prize pool to initiate the first round.
 
-本遊戲是一個執行在區塊鏈上的 Sui Scratcher，同時組合大獎與終止獎的協議式玩法。玩家可以買貨無限張Lottery，庫卡展示結果即刻告知是否中獎。Lottery中獎后，玩家需在適當時機使用兌換功能，否則就會面臨終止獎而失去獎勵。
+2. Lottery Purchase & Draw Process:
 
----
+Each ticket costs 5 USDT, and players may purchase unlimited tickets.
 
-### **二、玩法說明**
+Upon purchase, the ticket is instantly revealed to indicate whether it is a winning ticket.
 
-**1. 初始設定：**
+Winning probability: 20.15%
 
-- **Lottery** 首次啟動時，莊家將投入 **1000 USDT** 至獎金池。
+3. Prize Structure:
 
-**2. Lottery 購買與開獎流程：**
+14% chance to win 10 USDT (Common Prize)
 
-- **每張Lottery 價格為 5 USDT**，玩家可以無限購買。
-- 購買時，Lottery 會即刻開啟，告知是否中獎。
-    - 中獎機率 **20.15%**
+6% chance to win 20 USDT (Special Prize)
 
-**3. 獎勵設計：**
+0.1% chance to win the Grand Prize:
 
-- **14% 機率** 獲得 10 USDT（普通獎）
-- **6% 機率** 獲得 20 USDT（特別獎）
-- **0.1% 機率** 獲得頭獎：
-    - 頭獎可以在任何時候 兌換券**獲取當前獎金池內全部獎金**。
-    - 頭獎可以 **重複獲取，多名玩家可同時持有頭獎**。
-    - 若未使用投影則會面臨失去收益的風險。
-- **0.05% 機率** 獲得終止獎：
-    - 當終止獎出現，本輪遊戲直接終止。
-    - 如果有玩家獲得頭獎但未使用頭獎兌換券，則失去獲得獎金權利。
+Redeemable at any time to claim the entire current prize pool.
 
-**4. 遊戲終止條件：**
+Multiple players may hold the Grand Prize simultaneously.
 
-- **頭獎玩家兌換獎池獲取獎金**，遊戲終止。
-- **終止獎出現**，本輪遊戲終止。
+If not redeemed before a termination event, the prize will be forfeited.
 
-**5. 遊戲終止後的獎金分配：**
+0.05% chance to trigger a Termination Prize:
 
-- 不論是頭獎投影還是終止獎出現，獎金池中的 **30%** 會自動分配到 **下一輪遊戲中**，重新啟動新一輪遊戲。
+The current game round ends immediately.
 
-**6. 特殊情況：**
+Any unredeemed Grand Prizes will be voided.
 
-- 如果未有頭獎或終止獎出現，而獎金池被普通獎或特別獎抽空，項目方將 **額外100 USDT** 再次接入獎金池，保持遊戲的持續操作。
+4. Game Termination Conditions:
 
----
+The game ends when a Grand Prize is redeemed, or when a Termination Prize is drawn.
 
-### **三、遊戲組合元素**
+5. Prize Pool Distribution Upon Game Termination:
 
-**1. Lottery 系統：**
+Regardless of the termination cause (Grand Prize redemption or Termination Prize), 30% of the prize pool is rolled over to the next game round.
 
-- **Lottery** 會在玩家購買時即時開啟，告知是否中獎。
-- 若未中獎，購買金額將直接添加至獎金池。
+6. Special Case Handling:
 
-**2. 獎金池管理：**
+If no Grand or Termination Prize is drawn and the prize pool is depleted by regular wins, the project team will re-inject 100 USDT to maintain game continuity.
 
-- 莊家初始接入 100 USDT，庫卡購買次數無限。
-- 獲得頭獎或終止獎則發放獎金，30%獎金池將進入下一輪遊戲。
+III. Game Components
+1. Lottery System:
 
-**3. 玩家技巧與協議：**
+Lottery tickets reveal results immediately upon purchase.
 
-- 獲得頭獎的玩家需要在适當時機使用投影獲取獎金，如果等待期間被擊敗，則失去獲獎權利。
-- 玩家之間可以從競争轉為協議，等待更大獎金池的成長。
+If not a winning ticket, the funds are directly added to the prize pool.
 
----
+2. Prize Pool Management:
 
-### **四、經濟模型與風險控制**
+The banker initially contributes 1000 USDT; tickets can be purchased infinitely.
 
-**1. 經濟模型：**
+Once a Grand Prize is redeemed or a Termination Prize is triggered, the prize pool is distributed, with 30% carried forward to the next round.
 
-- 購買Lottery 金額中，未中獎金額全部進入獎金池，打造自我增長的經濟模型。
-- 若玩家太快擊敗獎金池，項目方會重新接入 100 USDT 保持遊戲操作。
+3. Player Strategy & Protocol Dynamics:
 
-**2. 風險控制：**
+Players who win the Grand Prize must time their redemption wisely. Delaying redemption may result in forfeiture if a Termination Prize is drawn.
 
-- 設定頭獎與終止獎機率，增加不確定性。
-- 每輪遊戲終止後，系統會自動評估獎金池增長速度，先前推算之後調整機率以保持穩定經濟。
+Players may adopt either competitive or cooperative strategies, choosing to wait for the prize pool to grow before claiming.
 
----
+IV. Economic Model & Risk Management
+1. Economic Model:
 
-### **五、紀錄與公開透明**
+All non-winning ticket revenue goes directly into the prize pool, creating a self-sustaining economic loop.
 
-**1. 區塊鏈公開系統：**
+If the prize pool is drained prematurely, the project team will inject another 100 USDT to ensure gameplay continuity.
 
-- 所有 Lottery 購買與獎金分配全部記錄在鏈上，保證遊戲公平公正。
-- 玩家可以随時查詢獎金池狀態並查詢機率設定。
+2. Risk Control:
 
-**2. 整合社群與NFT元素：**
+The probabilities of the Grand Prize and Termination Prize add uncertainty to the system.
 
-- 特別獎與頭獎可經由NFT表示，玩家可以在區塊鏈市場交易或收藏。
-- 設計社群排行榜和聖堂，增加玩家的玩樂與成就感。
+After each round, the system will assess the prize pool growth rate and adjust win probabilities accordingly to maintain economic stability.
 
----
+V. Transparency & Recordkeeping
+1. On-chain Transparency:
 
-### **六、結論**
+All ticket purchases and prize distributions are recorded on-chain, ensuring fairness and transparency.
 
-本遊戲系統將大獎與終止獎協議機制從傳統Lottery 中獨立出來，組合區塊鏈的透明性以及模組化的經濟模型，帶給玩家新鮮到激的遊戲體驗
+Players can check the prize pool and winning probabilities at any time.
+
+2. Community and NFT Integration:
+
+Special and Grand Prizes may be represented as NFTs, allowing players to trade or collect them on blockchain marketplaces.
+
+Community leaderboards and a “Hall of Fame” can be created to enhance engagement and a sense of achievement.
+
+VI. Conclusion
+This system introduces an innovative combination of jackpot and termination-based mechanics, differentiating itself from traditional lotteries. By leveraging blockchain transparency and modular economic design, Sui Scratcher delivers a fresh and thrilling experience to players worldwide.

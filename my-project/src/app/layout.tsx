@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { CoinProvider } from '@/context/CoinContext';
-import CoinInitializer from '@/components/CoinInitializer';
+import { CollectBookAuthProvider } from '@/context/authCollectBook';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -29,10 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CoinProvider>
-          <CoinInitializer />
-          {children}
-        </CoinProvider>
+        <CollectBookAuthProvider>
+          <CoinProvider>
+            {children}
+          </CoinProvider>
+        </CollectBookAuthProvider>
       </body>
     </html>
   );

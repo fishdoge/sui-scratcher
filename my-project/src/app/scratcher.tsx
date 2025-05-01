@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import PoolPrize from '@/app/poolPrize';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -38,6 +38,7 @@ import {
 import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { graphql } from '@mysten/sui/graphql/schemas/latest';
 import { useCoin } from '@/context/CoinContext';
+import { CollectBookContext } from '@/context/authCollectBook';
 
 interface historyType {
   id: number;
@@ -69,6 +70,7 @@ export default function Scratcher() {
   const account = useCurrentAccount();
   const { mutateAsync } = useSignAndExecuteTransaction();
   const [userOwnObjects, setUserObjects] = useState<userObject | null>();
+  const { stateCollectBook } = useContext(CollectBookContext);
 
   const newGameState = useRef<string>('');
   const { coin } = useCoin();
@@ -89,13 +91,17 @@ export default function Scratcher() {
       let colloctBook;
 
       userObjects.data.map((index) => {
-        console.log(index.data)
+        console.log(index.data);
         if (index.data?.type === scratcherCollectBook) {
           colloctBook = index.data.objectId;
         }
       });
 
       console.log('objects', biggestObject);
+
+      if (colloctBook != undefined) {
+        stateCollectBook(colloctBook);
+      }
 
       console.log('colloctBookObject', colloctBook);
       //console.log('coinBalance',coinBalance)
@@ -129,12 +135,11 @@ export default function Scratcher() {
         },
       });
 
-      const tickSold = (result?.data?.object?.asMoveObject?.contents?.json as any)?.count ?? 0;
-      const gameTurn = (result?.data?.object?.asMoveObject?.contents?.json as any)?.epoch ?? 0;
+      const tickSold =
+        (result?.data?.object?.asMoveObject?.contents?.json as any)?.count ?? 0;
+      const gameTurn =
+        (result?.data?.object?.asMoveObject?.contents?.json as any)?.epoch ?? 0;
 
-   
-     
-      console.log('result:Tickets Sold', tickSold);
       console.log('result:Turn', gameTurn);
       // Please check miro for more detail.
 
@@ -318,7 +323,7 @@ export default function Scratcher() {
     }
   };
   const scartch = async () => {
-    console.log('scartch')
+    console.log('scartch');
     const digestDigest: string = await playSuiScratcher();
 
     if (digestDigest == 'error') return;
@@ -610,7 +615,8 @@ export default function Scratcher() {
             <AccordionItem value="item-1">
               <AccordionTrigger>1. Initial Setup</AccordionTrigger>
               <AccordionContent>
-                When the Lottery first launches, the house will deposit 100 {coin}
+                When the Lottery first launches, the house will deposit 100{' '}
+                {coin}
                 into the prize pool.
               </AccordionContent>
             </AccordionItem>

@@ -3,10 +3,14 @@
 import { motion } from 'framer-motion';
 import { Coins, Award, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { cn } from '@/lib/utils';
+import { Transaction } from '@mysten/sui/transactions';
+import { suiPackage, usdtArgs, scratcherShop } from '@/chainConfig';
 import { useCoin } from '@/context/CoinContext';
+import { CollectBookContext } from '@/context/authCollectBook';
+import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 
 interface PrizePoolProps {
   totalPool: number;
@@ -19,7 +23,10 @@ const client = new SuiClient({
 });
 export default function PoolPrize({ className }: PrizePoolProps) {
   const [poolUSDTBalance, setPoolUSDTBalance] = useState(0);
-  const { coin } = useCoin(); 
+  const [goldBage, setGoldBage] = useState(false);
+  const { coin } = useCoin();
+  const { collectBookState } = useContext(CollectBookContext);
+  const { mutateAsync } = useSignAndExecuteTransaction();
 
   useEffect(() => {
     async function getContractObjectUSDT() {
@@ -42,6 +49,62 @@ export default function PoolPrize({ className }: PrizePoolProps) {
 
     //getCoinIdentifier()
   });
+
+  useEffect(() => {
+    console.log('collectBookState from context', collectBookState);
+
+    const showCollectBook = async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const txn: any = await client.getObject({
+        id: collectBookState,
+        // fetch the object content field
+        options: { showContent: true },
+      });
+
+      const goldValue = txn.data.content.fields.gold;
+      if (goldValue >= 1) {
+        setGoldBage(true);
+      }
+    };
+
+    showCollectBook();
+  });
+
+  const winnerTakesThePrice = async () => {
+    const ticketTx = new Transaction();
+
+    if (!collectBookState) {
+      return 'error';
+    }
+
+    ticketTx.moveCall({
+      target: `${suiPackage}::suirandom::winner_take_reward`,
+      typeArguments: [usdtArgs],
+      arguments: [
+        ticketTx.object(collectBookState),
+        ticketTx.object(scratcherShop),
+      ],
+    });
+
+    try {
+      const result = await mutateAsync({
+        transaction: ticketTx,
+        chain: 'sui:testnet',
+      });
+
+      if (!result || !result.digest) {
+        console.error('Transaction failed or digest missing.');
+        return 'error';
+      }
+
+      console.log('digest', result.digest);
+
+      return result.digest;
+    } catch (error) {
+      console.error('Transaction error:', error);
+      return 'error';
+    }
+  };
 
   return (
     <motion.div
@@ -78,37 +141,44 @@ export default function PoolPrize({ className }: PrizePoolProps) {
                 Growing with every ticket purchase!
               </p>
             </div>
+            {goldBage ? (
+              <div className="flex flex-col items-center">
+                <div className="relative mb-4">
+                  {/* Golden button with shimmering effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full blur-md animate-pulse"></div>
+                  <div className="flex items-center gap-3">
+                    {/* Jackpot indicator */}
 
-            <div className="flex flex-col items-center">
-              <div className="relative mb-4">
-                {/* Golden button with shimmering effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full blur-md animate-pulse"></div>
-                <div className="flex items-center gap-3">
-                  {/* Jackpot indicator */}
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-amber-450 rounded-full animate-ping opacity-30"></div>
-                    <div className="relative bg-gradient-to-r from-amber-500 to-yellow-400 p-3 rounded-full shadow-lg">
-                      <Award className="h-6 w-6 text-white" />
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-amber-450 rounded-full animate-ping opacity-30"></div>
+                      <div className="relative bg-gradient-to-r from-amber-500 to-yellow-400 p-3 rounded-full shadow-lg">
+                        <Award className="h-6 w-6 text-white" />
+                      </div>
                     </div>
-                  </div>
 
-                  <Button className="relative bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-white px-8 py-6 rounded-full text-lg font-semibold shadow-lg border border-amber-300 group overflow-hidden">
-                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-yellow-300 to-amber-300 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                    <div className="absolute -inset-x-full top-0 h-px bg-gradient-to-r from-transparent via-yellow-200 to-transparent animate-shimmer"></div>
-                    <div className="absolute -inset-y-full right-0 w-px bg-gradient-to-b from-transparent via-yellow-200 to-transparent animate-shimmer-vertical"></div>
-                    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-yellow-200 to-transparent animate-shimmer"></div>
-                    <div className="absolute -inset-y-full left-0 w-px bg-gradient-to-b from-transparent via-yellow-200 to-transparent animate-shimmer-vertical"></div>
-                    <span className="relative z-10 flex items-center gap-1">
-                      Redeem Jackpot
-                      <Star className="h-4 w-4 fill-yellow-100 stroke-yellow-100" />
-                    </span>
-                  </Button>
+                    <Button
+                      onClick={winnerTakesThePrice}
+                      className="relative bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-white px-8 py-6 rounded-full text-lg font-semibold shadow-lg border border-amber-300 group overflow-hidden"
+                    >
+                      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-yellow-300 to-amber-300 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                      <div className="absolute -inset-x-full top-0 h-px bg-gradient-to-r from-transparent via-yellow-200 to-transparent animate-shimmer"></div>
+                      <div className="absolute -inset-y-full right-0 w-px bg-gradient-to-b from-transparent via-yellow-200 to-transparent animate-shimmer-vertical"></div>
+                      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-yellow-200 to-transparent animate-shimmer"></div>
+                      <div className="absolute -inset-y-full left-0 w-px bg-gradient-to-b from-transparent via-yellow-200 to-transparent animate-shimmer-vertical"></div>
+                      <span className="relative z-10 flex items-center gap-1">
+                        Redeem Jackpot
+                        <Star className="h-4 w-4 fill-yellow-100 stroke-yellow-100" />
+                      </span>
+                    </Button>
+                  </div>
                 </div>
+                <p className="text-sm text-gray-500">
+                  Click to get entire prize!
+                </p>
               </div>
-              <p className="text-sm text-gray-500">
-                Click to get entire prize!
-              </p>
-            </div>
+            ) : (
+              <div>No Big Price</div>
+            )}
           </div>
 
           {/* Prize tiers */}

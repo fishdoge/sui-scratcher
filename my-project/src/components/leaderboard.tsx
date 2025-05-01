@@ -19,7 +19,7 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ players, className }: LeaderboardProps) {
-  const coin = useCoin();
+  const { coin } = useCoin();
   // Sort players by number of plays (descending)
   const sortedPlayers = [...players].sort((a, b) => b.plays - a.plays);
 
@@ -107,7 +107,9 @@ export default function Leaderboard({ players, className }: LeaderboardProps) {
                     {player.plays} plays
                   </span>
                   <span>•</span>
-                  <span>{player.winnings} {coin} won</span>
+                  <span>
+                    {player.winnings} {coin} won
+                  </span>
                 </div>
               </div>
 

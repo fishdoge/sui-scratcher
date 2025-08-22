@@ -27,7 +27,7 @@ import {
   useSignAndExecuteTransaction,
 } from '@mysten/dapp-kit';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
-import { Transaction } from '@mysten/sui/transactions';
+import { coinWithBalance, Transaction } from '@mysten/sui/transactions';
 import {
   suiPackage,
   usdtArgs,
@@ -206,10 +206,8 @@ export default function Scratcher() {
 
     if (!userOwnObjects?.usdTokenObject) return 'error';
 
-    const [coin] = ticketTx.splitCoins(
-      ticketTx.object(userOwnObjects?.usdTokenObject),
-      [5000000]
-    );
+    const coin = coinWithBalance({ balance: 5000000, type: `${usdtTestPackage}::usdt::USDT` });
+    ticketTx.setSender(account?.address);
 
     if (!userOwnObjects?.collectBook || !userOwnObjects?.usdTokenObject) {
       return 'error';
